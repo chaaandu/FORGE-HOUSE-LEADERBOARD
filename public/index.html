@@ -2,9 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>House Olympics</title>
-  <link rel="icon" href="assets/logos/vikings.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Forge Olympics</title>
+  <meta name="description" content="Live standings for the Mesa Forge House Olympics.">
+
+  <!-- Deep Aubergine, so the phone browser chrome matches the brand. -->
+  <meta name="theme-color" content="#2A1849">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+  <!-- Manrope carries every word on the page, so fetch it in parallel with
+       the stylesheet rather than waiting for the CSS to be parsed first. -->
+  <link rel="preload" href="assets/fonts/manrope-latin-var.woff2" as="font" type="font/woff2" crossorigin>
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,7 +32,7 @@
   <div id="big-banner"></div>
 
   <!-- Left edge games tab and its dropdown -->
-  <button id="side-nav-tab" aria-label="Browse games">
+  <button id="side-nav-tab" aria-label="Browse games" aria-expanded="false">
     <span>GAMES</span>
   </button>
   <div id="side-nav"></div>
@@ -35,18 +47,19 @@
     <div class="hero">
 
       <div class="topbar">
-        <div class="brand-mark" id="brand-mark" title="Double-click to celebrate">
-          <img src="assets/mesa-logo.svg" alt="Mesa">
+        <div class="brand-mark" id="brand-mark" tabindex="0" role="button"
+             title="Double-click to celebrate" aria-label="Mesa. Double-click to fire a celebration.">
+          <img src="assets/mesa-logo.svg" alt="Mesa, School of Business">
         </div>
         <div class="updated-row">
-          <span class="conn-dot" id="conn-dot"></span>
-          <span class="updated" id="updated">Loading&hellip;</span>
+          <span class="conn-dot" id="conn-dot" aria-hidden="true"></span>
+          <span class="updated" id="updated" role="status" aria-live="polite">Loading&hellip;</span>
         </div>
       </div>
 
       <div class="title-block">
-        <div class="title-flair">&#9733; &#9733; &#9733;</div>
-        <h1 id="event-title">House Olympics</h1>
+        <div class="title-flair" aria-hidden="true">&#9733; &#9733; &#9733;</div>
+        <h1 id="event-title">Forge Olympics</h1>
         <div class="title-underline"></div>
       </div>
 
@@ -58,7 +71,7 @@
         <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
       </div>
 
-      <div class="callout" id="callout"></div>
+      <div class="callout" id="callout" role="status" aria-live="polite"></div>
 
       <div id="ranking"></div>
       <div id="podium" class="podium" style="display:none;"></div>
@@ -68,10 +81,13 @@
 
     <div class="breakdown-section">
       <div class="breakdown-title">Per-Game Breakdown</div>
-      <table id="breakdown">
-        <thead><tr id="breakdown-head"></tr></thead>
-        <tbody id="breakdown-body"></tbody>
-      </table>
+      <!-- Scrolls sideways on a phone rather than crushing the columns. -->
+      <div class="table-scroll">
+        <table id="breakdown">
+          <thead><tr id="breakdown-head"></tr></thead>
+          <tbody id="breakdown-body"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 

@@ -67,7 +67,12 @@
 
   function fill(str, map) {
     return str.replace(/\{(\w+)\}/g, function (whole, k) {
-      return (typeof map[k] === 'undefined' || map[k] === null) ? '' : map[k];
+      var v = map ? map[k] : null;
+      if (typeof v !== 'undefined' && v !== null) return v;
+      // {event} is always available, so the ticker copy follows
+      // EVENT_TITLE instead of hard-coding the name of the event.
+      if (k === 'event') return (CONFIG && CONFIG.EVENT_TITLE) || 'Olympics';
+      return '';
     });
   }
 
@@ -106,7 +111,7 @@
      anything.
      ================================================================ */
 
-  var FALLBACK_COLOR = '#8891A7';
+  var FALLBACK_COLOR = '#8B7FA6';
   var HOUSE_META = {};
 
   function findHouseConfig(name) {
@@ -435,22 +440,22 @@
       "The tension on this leaderboard is unreal"
     ],
     general: [
-      "The house olympics are heating up!",
+      "The {event} are heating up!",
       "Every point counts. Stay in it!",
       "Someone check the scoreboard, things are moving",
       "The next few points could change everything",
       "Stay tuned, this is far from over"
     ],
     champion: [
-      "🏆 {house} are your House Olympics Champions!",
+      "🏆 {house} are your {event} Champions!",
       "Congratulations {house}! Final score: {points} points",
       "That's a wrap! {house} takes the crown. 🏆",
       "Well played, all four houses. {house} finishes on top!",
-      "{house} is going down in House Olympics history 🏆",
+      "{house} is going down in {event} history 🏆",
       "{house} really said it's the champions for us and left no crumbs"
     ],
     pregame: [
-      "Let the House Olympics begin! 🎉",
+      "Let the {event} begin! 🎉",
       "Four houses. One trophy. Let's go!",
       "Which house has what it takes?",
       "Warm-ups are over. Game faces on",
@@ -584,7 +589,9 @@
     if (!ranking.length) return ['Waiting for scores...'];
 
     if (!hasAnyPoints(data)) {
-      return shuffled(TEMPLATES.pregame);
+      return shuffled(TEMPLATES.pregame).map(function (line) {
+        return fill(line, {});
+      });
     }
 
     if (isEventComplete(data)) {
@@ -593,7 +600,7 @@
       return [
         fill(pick(TEMPLATES.champion), { house: champ.name, points: champ.total }),
         'Final standings: ' + final,
-        'Thanks for an incredible House Olympics! 🎉'
+        fill('Thanks for an incredible {event}! 🎉', {})
       ];
     }
 
@@ -626,7 +633,7 @@
       }
     }
 
-    lines.push(pick(TEMPLATES.general));
+    lines.push(fill(pick(TEMPLATES.general), {}));
     return lines;
   }
 
@@ -659,7 +666,8 @@
   function spawnConfettiPieces(color, count, spreadSec) {
     var layer = byId('confetti-layer');
     if (!layer) return;
-    var colors = [color, '#C99A2E', '#11403B'].concat(houseColors());
+    // Forge accents: Vivid Violet and Deep Aubergine, plus every house colour.
+    var colors = [color, '#7C4DCC', '#2A1849', '#E4A7F3'].concat(houseColors());
     for (var i = 0; i < count; i++) {
       var piece = document.createElement('div');
       piece.className = 'confetti-piece';
@@ -711,7 +719,7 @@
   function showBanner(text, duration, color) {
     var el = byId('big-banner');
     if (!el) return;
-    el.style.setProperty('--banner-color', color || 'var(--gold)');
+    el.style.setProperty('--banner-color', color || 'var(--accent)');
     el.textContent = text;
     el.classList.remove('show');
     void el.offsetWidth;
@@ -722,7 +730,7 @@
   /** Double-click the Mesa logo. Fires a celebration on demand, on stage. */
   function testCelebration() {
     var leader = lastData && lastData.ranking && lastData.ranking[0];
-    var color = leader ? getMeta(leader.name).color : '#C99A2E';
+    var color = leader ? getMeta(leader.name).color : '#7C4DCC';
     var complete = !!(lastData && isEventComplete(lastData));
 
     if (complete) launchConfettiForever(color);
@@ -1137,6 +1145,9 @@
 
       var pct = notStarted ? 0 : Math.max(3, Math.round((h.total / denom) * 100));
       el.querySelector('.race-fill').style.width = pct + '%';
+      // Narrow screens draw the bar from .house-card::after instead, on its
+      // own full-width row. Same number, different element.
+      el.style.setProperty('--bar-pct', pct + '%');
     });
 
     // FLIP, part two: slide each card from where it was to where it is.
@@ -1378,6 +1389,7 @@
     sideNavOpen = (typeof forceState === 'boolean') ? forceState : !sideNavOpen;
     setClass(byId('side-nav'), 'show', sideNavOpen);
     setClass(byId('side-nav-tab'), 'nav-open', sideNavOpen);
+    byId('side-nav-tab').setAttribute('aria-expanded', sideNavOpen ? 'true' : 'false');
   }
 
   function showOverview() {
@@ -1663,7 +1675,7 @@
   }
 
   function init() {
-    var title = CONFIG.EVENT_TITLE || 'House Olympics';
+    var title = CONFIG.EVENT_TITLE || 'Forge Olympics';
     byId('event-title').textContent = title;
     document.title = title;
 
@@ -1680,6 +1692,12 @@
     });
 
     byId('brand-mark').addEventListener('dblclick', testCelebration);
+    byId('brand-mark').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 13 || e.keyCode === 32) {
+        e.preventDefault();
+        testCelebration();
+      }
+    });
 
     // Coming back from a sleeping laptop lid or a backgrounded tab: pull
     // fresh scores immediately rather than waiting out the timer.

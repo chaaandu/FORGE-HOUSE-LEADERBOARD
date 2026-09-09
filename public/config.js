@@ -16,7 +16,7 @@ var CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbzrv3Ryq9GUvXFBLieXT6aZkjSbRYka5WRbjnUamMZuEbFf0XrRDw-n1TjWSb1EktEdoA/exec',
 
   // The big heading on the page, and the browser tab title.
-  EVENT_TITLE: 'House Olympics',
+  EVENT_TITLE: 'Forge Olympics',
 
   // How often to pull fresh scores, in milliseconds. 20000 = 20 seconds.
   // Going much below 10000 is pointless, the API caches for 5 seconds anyway.

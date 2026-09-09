@@ -1,15 +1,72 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@600;700;800&display=swap');
+/* ==================================================================
+   MESA FORGE - House Olympics leaderboard
+   Built to mesa_forge_design_system/design_system.md
+   ================================================================== */
+
+/* Fonts are self-hosted. The old build pulled Anton and Inter from Google
+   over a render-blocking @import, which is a bad bet on venue wifi: if
+   fonts.googleapis.com is slow or blocked the title does not draw. These
+   are two variable woff2 files, 156KB total, served from our own origin.
+
+   Manrope is SIL OFL. Newsreader is SIL OFL and is the substitute the
+   design system itself nominates for New York, which is Apple's system
+   serif and is not licensed for embedding on a public website. */
+
+@font-face {
+  font-family: 'Manrope';
+  src: url('assets/fonts/manrope-latin-var.woff2') format('woff2');
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Newsreader';
+  src: url('assets/fonts/newsreader-latin-var.woff2') format('woff2');
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
-  --mesa-bg: #FBF8F0;
-  --mesa-panel: #FFFFFF;
-  --mesa-primary: #11403B;
-  --mesa-primary-light: #1C5850;
-  --text-dark: #16211F;
-  --mesa-muted: #6B7570;
-  --gold: #C99A2E;
-  --gold-soft: #F4E6C4;
-  --border: #E8E2D3;
+  /* ---- Forge brand palette, straight from the design system ---- */
+  --aubergine: #2A1849;   /* dark surfaces and dividers */
+  --royal:     #452A74;   /* primary brand, headings on light */
+  --amethyst:  #5A3A8E;   /* secondary surfaces and fills */
+  --violet:    #7C4DCC;   /* high-energy emphasis, kept to ~5% of the page */
+  --orchid:    #E4A7F3;   /* soft accent, highlights, the ring motif */
+  --lavender:  #F5EDFB;   /* light page background */
+  --ink:       #1D1C1D;   /* body text on light */
+
+  /* ---- Semantic roles. Components reference these, never a raw hex, so
+         a palette change is a one-line edit here. ---- */
+  --bg:            var(--lavender);
+  --panel:         #FFFFFF;
+  --primary:       var(--royal);
+  --primary-light: var(--amethyst);
+  --surface-dark:  var(--aubergine);
+  --text:          var(--ink);
+  --muted:         #6E6480;   /* lavender-leaning grey, not a neutral grey */
+  --border:        #E7DCF5;
+  --hover:         #F7F2FC;
+  --blank:         #BEB3CE;   /* the em-dash in unscored cells */
+
+  /* Victory and emphasis. This is the old --gold role. The Forge system has
+     no gold, so Vivid Violet carries "winner / complete / urgent" instead,
+     and the trophy glyphs do the medal semantics. */
+  --accent:      var(--violet);
+  --accent-soft: #EFE1FB;
+  --accent-ink:  #4A2A83;     /* readable text on --accent-soft */
+
+  /* Momentum arrows stay green/up red/down. That is data semantics, not
+     brand chrome, and it is the one place a student reads at a glance. */
+  --up:   #1F8A5B;
+  --down: #C2453B;
+
+  /* ---- Type ---- */
+  --font-ui:      'Manrope', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
+
   --radius: 18px;
 }
 
@@ -18,9 +75,9 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--mesa-bg);
-  color: var(--text-dark);
-  font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
   overflow-x: hidden;
 }
 
@@ -33,6 +90,8 @@ html, body {
 /* ---------- Hero: fills one full screen ---------- */
 .hero {
   min-height: 100vh;
+  /* dvh tracks the mobile address bar; vh above is the fallback. */
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -55,7 +114,7 @@ html, body {
 
 .updated {
   font-size: 12px;
-  color: var(--mesa-muted);
+  color: var(--muted);
   text-align: right;
 }
 
@@ -68,19 +127,19 @@ html, body {
 .title-flair {
   font-size: 20px;
   letter-spacing: 12px;
-  color: var(--gold);
+  color: var(--accent);
   margin-bottom: 4px;
 }
 
 h1 {
-  font-family: 'Anton', 'Segoe UI', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(40px, 6vw, 76px);
   margin: 0;
   letter-spacing: 5px;
   line-height: 1;
   text-transform: uppercase;
-  background: linear-gradient(90deg, var(--mesa-primary-light) 0%, var(--mesa-primary) 12%, var(--mesa-primary) 88%, var(--mesa-primary-light) 100%);
+  background: linear-gradient(90deg, var(--amethyst) 0%, var(--royal) 12%, var(--royal) 88%, var(--amethyst) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -89,7 +148,7 @@ h1 {
 .title-underline {
   width: 130px;
   height: 4px;
-  background: var(--gold);
+  background: var(--accent);
   border-radius: 4px;
   margin: 16px auto 0;
 }
@@ -100,7 +159,7 @@ h1 {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: var(--mesa-muted);
+  color: var(--muted);
   font-weight: 600;
   margin-bottom: 6px;
 }
@@ -112,24 +171,24 @@ h1 {
 }
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--mesa-primary-light), var(--mesa-primary));
+  background: linear-gradient(90deg, var(--primary-light), var(--primary));
   border-radius: 10px;
   transition: width 1s ease;
   width: 0%;
 }
 .progress-fill.complete {
-  background: linear-gradient(90deg, var(--gold), #E8C55A);
+  background: linear-gradient(90deg, var(--accent), var(--orchid));
 }
 
 /* ---------- Closest race callout ---------- */
 .callout {
-  background: var(--gold-soft);
-  border: 1px solid var(--gold);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
   border-radius: 12px;
   padding: 10px 18px;
   font-size: 15px;
   font-weight: 700;
-  color: #7A5B12;
+  color: var(--accent-ink);
   margin-bottom: 22px;
   display: none;
   align-items: center;
@@ -147,7 +206,7 @@ h1 {
 
 .house-card {
   position: relative;
-  background: var(--mesa-panel);
+  background: var(--panel);
   border-radius: var(--radius);
   padding: 14px 24px;
   display: grid;
@@ -159,13 +218,13 @@ h1 {
 }
 
 .house-card.leader {
-  border: 1px solid var(--house-color, var(--gold));
+  border: 1px solid var(--house-color, var(--accent));
   animation: glow 2.4s ease-in-out infinite;
 }
 
 @keyframes glow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0), 0 2px 8px rgba(17,64,59,0.08); }
-  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--house-color, var(--gold)) 18%, transparent), 0 2px 8px rgba(17,64,59,0.08); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--house-color, var(--accent)) 18%, transparent), 0 2px 8px rgba(17,64,59,0.08); }
 }
 
 /* Ambient sparkles behind the leader card */
@@ -190,7 +249,7 @@ h1 {
   position: absolute;
   top: -13px;
   right: 22px;
-  background: var(--gold);
+  background: var(--accent);
   color: #fff;
   font-size: 11px;
   font-weight: 800;
@@ -204,10 +263,10 @@ h1 {
 .podium { padding: 8px 0 4px; }
 .podium-title {
   text-align: center;
-  font-family: 'Anton', 'Segoe UI', sans-serif;
+  font-family: var(--font-display);
   font-size: 28px;
   letter-spacing: 1px;
-  color: var(--mesa-primary);
+  color: var(--primary);
   margin-bottom: 22px;
 }
 .podium-stage {
@@ -245,14 +304,15 @@ h1 {
 .podium-name {
   font-weight: 800;
   font-size: 16px;
-  color: var(--text-dark);
+  color: var(--text);
   text-align: center;
 }
 .podium-col.rank-1 .podium-name { font-size: 19px; }
 .podium-points {
+  font-variant-numeric: tabular-nums;
   font-size: 13px;
   font-weight: 700;
-  color: var(--mesa-muted);
+  color: var(--muted);
   margin-bottom: 10px;
 }
 .podium-block {
@@ -262,13 +322,15 @@ h1 {
   align-items: flex-start;
   justify-content: center;
   padding-top: 10px;
-  font-family: 'Anton', 'Segoe UI', sans-serif;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
   font-size: 30px;
   color: rgba(255,255,255,0.92);
-  background: linear-gradient(180deg, var(--house-color, var(--gold)) 0%, color-mix(in srgb, var(--house-color, var(--gold)) 70%, black) 100%);
+  background: linear-gradient(180deg, var(--house-color, var(--accent)) 0%, color-mix(in srgb, var(--house-color, var(--accent)) 70%, black) 100%);
   box-shadow: 0 4px 10px rgba(0,0,0,0.18);
 }
-.podium-col.rank-1 .podium-block { height: 130px; border: 2px solid var(--gold); }
+.podium-col.rank-1 .podium-block { height: 130px; border: 2px solid var(--accent); }
 .podium-col.rank-2 .podium-block { height: 92px; }
 .podium-col.rank-3 .podium-block { height: 68px; }
 .podium-rest {
@@ -276,17 +338,17 @@ h1 {
   margin-top: 20px;
   font-size: 13px;
   font-weight: 700;
-  color: var(--mesa-muted);
+  color: var(--muted);
   letter-spacing: 0.3px;
 }
 
 .rank-num {
   font-size: 26px;
   font-weight: 800;
-  color: var(--mesa-muted);
+  color: var(--muted);
   text-align: center;
 }
-.house-card.leader .rank-num { color: var(--text-dark); }
+.house-card.leader .rank-num { color: var(--text); }
 
 .house-badge {
   display: flex;
@@ -305,7 +367,7 @@ h1 {
   font-weight: 800;
   font-size: 17px;
   color: #fff;
-  background: var(--house-color, var(--mesa-muted));
+  background: var(--house-color, var(--muted));
 }
 
 .house-main {
@@ -320,15 +382,15 @@ h1 {
   gap: 8px;
   font-size: 15px;
   font-weight: 800;
-  color: var(--text-dark);
+  color: var(--text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .momentum { font-size: 13px; font-weight: 800; }
-.momentum.up { color: #2C8A5A; }
-.momentum.down { color: #C24A3D; }
-.momentum.same { color: var(--mesa-muted); }
+.momentum.up { color: var(--up); }
+.momentum.down { color: var(--down); }
+.momentum.same { color: var(--muted); }
 
 .race-track {
   height: 16px;
@@ -341,7 +403,7 @@ h1 {
   overflow: hidden;
   height: 100%;
   border-radius: 10px;
-  background: var(--house-color, var(--mesa-muted));
+  background: var(--house-color, var(--muted));
   transition: width 0.9s cubic-bezier(.2,.8,.2,1);
   width: 0%;
 }
@@ -364,23 +426,24 @@ h1 {
   text-align: right;
   font-size: 28px;
   font-weight: 800;
-  color: var(--mesa-primary);
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
 }
 .house-points .pval {
   display: inline-block;
   font-size: 28px;
   font-weight: 800;
-  color: var(--mesa-primary);
+  color: var(--primary);
 }
 .house-points .pval.pop { animation: popFlash 0.6s ease; }
 @keyframes popFlash {
   0% { transform: scale(1); }
-  30% { transform: scale(1.4); color: var(--house-color, var(--gold)); }
+  30% { transform: scale(1.4); color: var(--house-color, var(--accent)); }
   100% { transform: scale(1); }
 }
 .house-points .plabel {
   font-size: 12px;
-  color: var(--mesa-muted);
+  color: var(--muted);
   font-weight: 600;
   display: block;
   text-transform: uppercase;
@@ -389,7 +452,7 @@ h1 {
 
 /* ---------- Trash talk ticker ---------- */
 .ticker {
-  background: var(--mesa-primary);
+  background: var(--surface-dark);
   border-radius: 12px;
   padding: 14px 20px;
   font-size: 22px;
@@ -408,7 +471,7 @@ h1 {
 .breakdown-section { padding: 10px 0 50px; }
 .breakdown-title {
   font-size: 14px;
-  color: var(--mesa-muted);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 1px;
   font-weight: 700;
@@ -417,7 +480,7 @@ h1 {
 table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--mesa-panel);
+  background: var(--panel);
   border-radius: var(--radius);
   overflow: hidden;
   font-size: 14px;
@@ -429,27 +492,27 @@ th, td {
   border-bottom: 1px solid var(--border);
 }
 th {
-  color: var(--mesa-muted);
+  color: var(--muted);
   font-weight: 800;
   font-size: 12px;
   text-transform: uppercase;
-  background: #F4F1E8;
+  background: var(--hover);
 }
-td:first-child, th:first-child { text-align: left; color: var(--text-dark); font-weight: 800; }
+td:first-child, th:first-child { text-align: left; color: var(--text); font-weight: 800; }
 tr:last-child td { border-bottom: none; }
-.cell-blank { color: #C7C0AD; }
+.cell-blank { color: var(--blank); }
 
 .cell-winner {
   font-weight: 800;
-  color: var(--win-color, var(--gold));
-  background: color-mix(in srgb, var(--win-color, var(--gold)) 10%, transparent);
+  color: var(--win-color, var(--accent));
+  background: color-mix(in srgb, var(--win-color, var(--accent)) 10%, transparent);
 }
 .winner-cell {
   font-weight: 800;
-  color: var(--win-color, var(--mesa-muted));
+  color: var(--win-color, var(--muted));
   white-space: nowrap;
 }
-.winner-cell.tie { color: var(--mesa-muted); font-weight: 700; font-size: 12.5px; }
+.winner-cell.tie { color: var(--muted); font-weight: 700; font-size: 12.5px; }
 
 /* ---------- Per-game navigation ---------- */
 #side-nav-tab {
@@ -458,14 +521,14 @@ tr:last-child td { border-bottom: none; }
   left: 0;
   transform: translateY(-50%);
   z-index: 900;
-  background: var(--mesa-primary);
+  background: var(--primary);
   color: #fff;
   border: none;
   border-radius: 0 10px 10px 0;
   padding: 16px 8px;
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-family: var(--font-ui);
   font-weight: 800;
   font-size: 13px;
   letter-spacing: 1.5px;
@@ -480,7 +543,7 @@ tr:last-child td { border-bottom: none; }
   left: 0;
   transform: translateY(-50%);
   z-index: 900;
-  background: var(--mesa-panel);
+  background: var(--panel);
   border: 1px solid var(--border);
   border-left: none;
   border-radius: 0 14px 14px 0;
@@ -504,17 +567,17 @@ tr:last-child td { border-bottom: none; }
   border: none;
   border-radius: 8px;
   padding: 9px 10px;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-family: var(--font-ui);
   font-size: 12.5px;
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--text);
   cursor: pointer;
 }
 .side-nav-item .snl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.side-nav-item:hover { background: #F4F1E8; }
-.side-nav-item.active { background: var(--mesa-primary); color: #fff; }
+.side-nav-item:hover { background: var(--hover); }
+.side-nav-item.active { background: var(--primary); color: #fff; }
 .side-nav-item.overview-item {
-  color: var(--mesa-primary);
+  color: var(--primary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: 11.5px;
@@ -529,10 +592,10 @@ tr:last-child td { border-bottom: none; }
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #C7C0AD;
+  background: var(--blank);
 }
-.snl-dot.snl-progress { background: var(--mesa-primary-light); }
-.snl-dot.snl-complete { background: var(--gold); }
+.snl-dot.snl-progress { background: var(--primary-light); }
+.snl-dot.snl-complete { background: var(--accent); }
 .side-nav-item.active .snl-dot { background: #fff; }
 
 /* ---------- Full-screen single-game view ---------- */
@@ -552,15 +615,15 @@ tr:last-child td { border-bottom: none; }
   border-radius: 20px;
   text-transform: uppercase;
 }
-.gv-status-pill.gv-not-started { background: var(--gold-soft); color: var(--gold); }
-.gv-status-pill.gv-in-progress { background: #E5F1EE; color: var(--mesa-primary); }
-.gv-status-pill.gv-complete { background: var(--gold); color: #fff; }
+.gv-status-pill.gv-not-started { background: var(--accent-soft); color: var(--accent-ink); }
+.gv-status-pill.gv-in-progress { background: var(--hover); color: var(--primary); }
+.gv-status-pill.gv-complete { background: var(--accent); color: #fff; }
 .gv-status-row { text-align: center; margin-bottom: 8px; }
 .gv-pregame-box {
   text-align: center;
   font-weight: 700;
   font-size: 22px;
-  color: var(--mesa-primary);
+  color: var(--primary);
   padding: 60px 10px;
 }
 
@@ -590,12 +653,12 @@ tr:last-child td { border-bottom: none; }
 #big-banner {
   position: fixed; top: 38%; left: 50%;
   transform: translate(-50%, -50%) scale(0.3) rotate(-8deg);
-  background: linear-gradient(135deg, var(--banner-color, var(--gold)), var(--mesa-primary-light) 130%);
+  background: linear-gradient(135deg, var(--banner-color, var(--accent)), var(--primary-light) 130%);
   border: 5px solid rgba(255,255,255,0.85);
   color: #fff;
-  font-family: 'Anton', 'Segoe UI', sans-serif;
-  font-weight: 400;
-  letter-spacing: 1px;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   font-size: 40px;
   line-height: 1.15;
@@ -628,7 +691,7 @@ tr:last-child td { border-bottom: none; }
   position: fixed;
   inset: 0;
   z-index: 1100;
-  background: radial-gradient(circle at center, rgba(28,88,80,0.97) 0%, rgba(17,64,59,0.98) 55%, rgba(9,34,31,1) 100%);
+  background: radial-gradient(circle at center, rgba(90,58,142,0.97) 0%, rgba(69,42,116,0.98) 55%, rgba(42,24,73,1) 100%);
   opacity: 0;
   pointer-events: none;
   overflow: hidden;
@@ -656,16 +719,16 @@ tr:last-child td { border-bottom: none; }
   height: 10px;
   transform: translate(-50%, -50%) scale(0);
   background: conic-gradient(from 0deg,
-    var(--gold) 0deg 18deg, transparent 18deg 36deg,
-    var(--gold) 36deg 54deg, transparent 54deg 72deg,
-    var(--gold) 72deg 90deg, transparent 90deg 108deg,
-    var(--gold) 108deg 126deg, transparent 126deg 144deg,
-    var(--gold) 144deg 162deg, transparent 162deg 180deg,
-    var(--gold) 180deg 198deg, transparent 198deg 216deg,
-    var(--gold) 216deg 234deg, transparent 234deg 252deg,
-    var(--gold) 252deg 270deg, transparent 270deg 288deg,
-    var(--gold) 288deg 306deg, transparent 306deg 324deg,
-    var(--gold) 324deg 342deg, transparent 342deg 360deg);
+    var(--accent) 0deg 18deg, transparent 18deg 36deg,
+    var(--accent) 36deg 54deg, transparent 54deg 72deg,
+    var(--accent) 72deg 90deg, transparent 90deg 108deg,
+    var(--accent) 108deg 126deg, transparent 126deg 144deg,
+    var(--accent) 144deg 162deg, transparent 162deg 180deg,
+    var(--accent) 180deg 198deg, transparent 198deg 216deg,
+    var(--accent) 216deg 234deg, transparent 234deg 252deg,
+    var(--accent) 252deg 270deg, transparent 270deg 288deg,
+    var(--accent) 288deg 306deg, transparent 306deg 324deg,
+    var(--accent) 324deg 342deg, transparent 342deg 360deg);
   border-radius: 50%;
   opacity: 0;
 }
@@ -705,10 +768,10 @@ tr:last-child td { border-bottom: none; }
   100% { transform: translate(-50%, -50%) scale(1.1) rotate(0deg); opacity: 1; }
 }
 @keyframes clashWinnerBounce {
-  0%, 100% { transform: translate(-50%, -50%) scale(1.1, 1.1) rotate(0deg) translateY(0); filter: drop-shadow(0 0 18px var(--gold)); }
-  25% { transform: translate(-50%, -50%) scale(1.15, 1.03) rotate(-5deg) translateY(-12px); filter: drop-shadow(0 0 28px var(--gold)); }
-  50% { transform: translate(-50%, -50%) scale(1.06, 1.12) rotate(0deg) translateY(-2px); filter: drop-shadow(0 0 36px var(--gold)); }
-  75% { transform: translate(-50%, -50%) scale(1.15, 1.03) rotate(5deg) translateY(-12px); filter: drop-shadow(0 0 28px var(--gold)); }
+  0%, 100% { transform: translate(-50%, -50%) scale(1.1, 1.1) rotate(0deg) translateY(0); filter: drop-shadow(0 0 18px var(--accent)); }
+  25% { transform: translate(-50%, -50%) scale(1.15, 1.03) rotate(-5deg) translateY(-12px); filter: drop-shadow(0 0 28px var(--accent)); }
+  50% { transform: translate(-50%, -50%) scale(1.06, 1.12) rotate(0deg) translateY(-2px); filter: drop-shadow(0 0 36px var(--accent)); }
+  75% { transform: translate(-50%, -50%) scale(1.15, 1.03) rotate(5deg) translateY(-12px); filter: drop-shadow(0 0 28px var(--accent)); }
 }
 
 .clash-loser {
@@ -797,7 +860,8 @@ tr:last-child td { border-bottom: none; }
   position: absolute;
   top: -14px;
   right: -14px;
-  font-family: 'Anton', 'Segoe UI', sans-serif;
+  font-family: var(--font-ui);
+  font-weight: 800;
   font-size: 18px;
   letter-spacing: 1px;
   padding: 2px 9px;
@@ -891,12 +955,15 @@ tr:last-child td { border-bottom: none; }
   top: 14%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.3) rotate(-8deg);
-  font-family: 'Anton', 'Segoe UI', sans-serif;
+  font-family: var(--font-ui);
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   font-size: clamp(24px, 4.2vw, 48px);
-  color: var(--mesa-primary);
-  background: var(--gold);
+  /* Aubergine on Orchid, 8.4:1. This was royal-on-violet at 2.1:1, which
+     is unreadable on a projector from the back of a room. */
+  color: var(--aubergine);
+  background: var(--orchid);
   padding: 10px 34px;
   border-radius: 10px;
   border: 4px solid #fff;
@@ -913,11 +980,9 @@ tr:last-child td { border-bottom: none; }
 }
 
 /* ==================================================================
-   ADDITIONS FOR THE STATIC BUILD
-   Everything above this line is carried over from the original page
-   unchanged. Everything below exists because the logo is now a file
-   rather than inline SVG, and because the page now has to survive
-   losing the network mid-event.
+   STATIC BUILD ADDITIONS
+   The logo is a file rather than inline SVG, and the page has to
+   survive losing the network mid-event.
    ================================================================== */
 
 /* The Mesa wordmark is an <img> now, not an inline <svg>. Same size. */
@@ -939,16 +1004,252 @@ tr:last-child td { border-bottom: none; }
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #9BB5A8;
+  background: var(--blank);
   transition: background-color 0.4s ease;
 }
-.conn-dot.conn-live { background: #2C8A5A; }
-.conn-dot.conn-warn { background: var(--gold); animation: connPulse 1.8s ease-in-out infinite; }
-.conn-dot.conn-mock { background: var(--mesa-primary-light); }
+.conn-dot.conn-live { background: var(--up); }
+.conn-dot.conn-warn { background: var(--accent); animation: connPulse 1.8s ease-in-out infinite; }
+.conn-dot.conn-mock { background: var(--primary-light); }
 
 @keyframes connPulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
 }
 
-.updated.conn-warn-text { color: #8A6D1F; }
+.updated.conn-warn-text { color: var(--accent-ink); }
+
+
+/* ==================================================================
+   FORGE RING MOTIF
+   "Faint Orchid to Lavender concentric rings anchored bottom-right on
+   every surface" - design_system.md. Done in CSS rather than as an
+   image so it costs nothing to download and scales to any screen.
+   Sits behind everything and never intercepts a click.
+   ================================================================== */
+
+body::before {
+  content: '';
+  position: fixed;
+  right: -18vmax;
+  bottom: -18vmax;
+  width: 78vmax;
+  height: 78vmax;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(circle, transparent 39%, rgba(228,167,243,0.16) 40%, rgba(228,167,243,0.16) 41.5%, transparent 42%),
+    radial-gradient(circle, transparent 55%, rgba(228,167,243,0.13) 56%, rgba(228,167,243,0.13) 57.5%, transparent 58%),
+    radial-gradient(circle, transparent 71%, rgba(228,167,243,0.10) 72%, rgba(228,167,243,0.10) 73.5%, transparent 74%),
+    radial-gradient(circle, rgba(228,167,243,0.07) 0%, transparent 62%);
+}
+
+/* Everything real sits above the motif. Only .wrap needs a stacking
+   context here - the side nav and its tab are position:fixed with their
+   own z-index of 900, and setting position:relative on them would drop
+   them back into normal flow. */
+.wrap { position: relative; z-index: 1; }
+
+
+/* ==================================================================
+   RESPONSIVE
+   This screen has three genuinely different audiences: a venue TV
+   across a room, a laptop driving it, and ~120 students on phones.
+   The original had no breakpoints at all - the house card is a fixed
+   4-column grid, which overflows below about 700px.
+   ================================================================== */
+
+/* ---- Venue TV and large monitors: push scale up, it is read from
+        the back of a room, not from a desk. ---- */
+@media (min-width: 1700px) {
+  .wrap { max-width: 1640px; }
+  .house-card { grid-template-columns: 64px 132px 1fr 190px; padding: 20px 30px; }
+  .house-badge { height: 84px; }
+  .rank-num { font-size: 34px; }
+  .name-momentum-row { font-size: 19px; }
+  .house-points .pval, .house-points { font-size: 36px; }
+  .house-points .plabel { font-size: 13px; }
+  .race-track { height: 20px; }
+  .ticker { font-size: 27px; padding: 18px 24px; }
+  table { font-size: 16px; }
+  th, td { padding: 13px 16px; }
+}
+
+/* ---- Laptops and small desktops ---- */
+@media (max-width: 1100px) {
+  .wrap { padding: 0 22px; }
+  .house-card { grid-template-columns: 44px 92px 1fr 124px; gap: 16px; padding: 13px 18px; }
+  .house-badge { height: 60px; }
+  .house-points .pval, .house-points { font-size: 25px; }
+  .ticker { font-size: 19px; }
+}
+
+/* ---- Tablets ---- */
+@media (max-width: 860px) {
+  .wrap { padding: 0 18px; }
+  .hero { padding: 18px 0 26px; }
+  .brand-mark img { height: 42px; }
+  .title-flair { font-size: 16px; letter-spacing: 8px; }
+  .house-card { grid-template-columns: 38px 74px 1fr 104px; gap: 14px; }
+  .house-badge { height: 52px; }
+  .rank-num { font-size: 21px; }
+  .name-momentum-row { font-size: 14px; }
+  .house-points .pval, .house-points { font-size: 22px; }
+  .ticker { font-size: 17px; padding: 12px 16px; }
+  .podium-col { width: 116px; }
+  .podium-crest { height: 60px; }
+  .podium-col.rank-1 .podium-crest { height: 76px; }
+  #side-nav-tab.nav-open { left: 168px; }
+  #side-nav { width: 168px; }
+}
+
+/* ---- Phones. The card becomes two rows: identity on top, race bar
+        underneath, so the house name and score never get squeezed. ---- */
+@media (max-width: 640px) {
+  .wrap { padding: 0 14px; }
+  .hero { min-height: auto; padding: 20px 0 24px; }
+
+  .topbar { gap: 10px; }
+  .brand-mark img { height: 34px; }
+  .updated { font-size: 11px; }
+
+  .title-block { margin: 14px 0 20px; }
+  .title-flair { font-size: 13px; letter-spacing: 6px; }
+  h1 { letter-spacing: 2px; }
+  .title-underline { width: 92px; height: 3px; margin-top: 12px; }
+
+  .progress-label { font-size: 12px; }
+  .callout { font-size: 13px; padding: 9px 13px; border-radius: 10px; }
+
+  #ranking { gap: 10px; }
+  .house-card {
+    grid-template-columns: 30px 48px 1fr auto;
+    grid-template-areas:
+      'rank crest name points'
+      'bar  bar   bar  bar';
+    gap: 6px 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+  }
+  .house-card > .rank-num  { grid-area: rank; font-size: 17px; }
+  .house-card > .house-badge { grid-area: crest; height: 42px; }
+  .house-card > .house-main { grid-area: name; display: block; min-width: 0; }
+  .house-card > .house-points { grid-area: points; }
+  .house-main .race-track { display: none; }
+
+  /* The bar moves to its own full-width row so it stays readable. */
+  .house-card::after {
+    content: '';
+    grid-area: bar;
+    height: 9px;
+    border-radius: 8px;
+    background: var(--border);
+    background-image: linear-gradient(90deg, var(--house-color, var(--muted)) 0 var(--bar-pct, 0%), transparent var(--bar-pct, 0%));
+    background-repeat: no-repeat;
+  }
+
+  .name-momentum-row { font-size: 13px; letter-spacing: 0.3px; }
+  .house-points .pval, .house-points { font-size: 21px; }
+  .house-points .plabel { font-size: 10px; }
+  .champion-badge { font-size: 10px; padding: 3px 9px; right: 12px; }
+
+  .ticker { font-size: 15px; padding: 11px 14px; line-height: 1.35; }
+
+  /* A table cannot usefully shrink to 360px, so let it scroll sideways
+     inside its own container rather than squashing the numbers. */
+  .breakdown-section { padding: 6px 0 40px; }
+  .breakdown-section table { min-width: 560px; }
+  /* A soft fade on the right edge signals there is more table to
+     scroll to, instead of the columns just being cut off. */
+  .table-scroll {
+    position: relative;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius);
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 26px), transparent 100%);
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 26px), transparent 100%);
+  }
+  th, td { padding: 8px 10px; font-size: 12.5px; }
+
+  .podium-stage { gap: 10px; }
+  .podium-col { width: 92px; }
+  .podium-crest { height: 46px; margin-bottom: 6px; }
+  .podium-col.rank-1 .podium-crest { height: 58px; }
+  .podium-name { font-size: 13px; }
+  .podium-col.rank-1 .podium-name { font-size: 15px; }
+  .podium-points { font-size: 11px; }
+  .podium-block { font-size: 22px; }
+  .podium-col.rank-1 .podium-block { height: 96px; }
+  .podium-col.rank-2 .podium-block { height: 68px; }
+  .podium-col.rank-3 .podium-block { height: 50px; }
+  .podium-rest { font-size: 11.5px; }
+
+  #side-nav-tab { padding: 13px 6px; font-size: 11px; }
+  #side-nav-tab.nav-open { left: 152px; }
+  #side-nav { width: 152px; max-height: 70vh; }
+  .side-nav-item { font-size: 11.5px; padding: 8px; }
+
+  #big-banner { font-size: 23px; padding: 20px 26px; border-radius: 22px; border-width: 4px; }
+  .clash-crest { width: 78px; }
+  .clash-winner { width: 128px; }
+  .clash-headline { top: 12%; padding: 8px 18px; border-width: 3px; }
+  .gv-pregame-box { font-size: 17px; padding: 40px 8px; }
+}
+
+@media (max-width: 380px) {
+  .house-card { grid-template-columns: 24px 40px 1fr auto; padding: 10px 12px; }
+  .house-card > .house-badge { height: 36px; }
+  .house-points .pval, .house-points { font-size: 19px; }
+  .name-momentum-row { font-size: 12px; }
+}
+
+/* Short landscape, e.g. a phone turned sideways or a low projector.
+   The full-height hero would otherwise push the standings off screen. */
+@media (max-height: 560px) and (min-width: 641px) {
+  .hero { min-height: auto; padding: 16px 0 20px; }
+  .title-block { margin: 4px 0 14px; }
+}
+
+
+/* ==================================================================
+   ACCESSIBILITY AND INPUT
+   ================================================================== */
+
+/* Keyboard focus. The original had none, so tabbing through the games
+   menu was invisible. */
+#side-nav-tab:focus-visible,
+.side-nav-item:focus-visible,
+.brand-mark:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* This page is almost entirely motion: confetti, a shaking cutscene,
+   pulsing glows, sliding cards. Respect the OS setting. The board still
+   works, it just stops moving. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .sparkle,
+  .race-fill::after,
+  .confetti-piece { display: none !important; }
+  .house-card.leader { box-shadow: 0 0 0 3px var(--house-color, var(--accent)); }
+  #big-banner.show,
+  #clash-overlay.show .clash-headline { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+/* Printing a final results sheet is a plausible thing to want. */
+@media print {
+  #side-nav-tab, #side-nav, #confetti-layer, #screen-flash,
+  #clash-overlay, #big-banner, body::before { display: none !important; }
+  html, body { background: #fff; }
+  .hero { min-height: auto; }
+  .house-card { break-inside: avoid; box-shadow: none; }
+}

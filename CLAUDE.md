@@ -5,7 +5,7 @@ you re-reading the whole codebase.
 
 ## What this is
 
-A live leaderboard for the Mesa House Olympics. Four houses (Vikings,
+A live leaderboard for the Mesa **Forge** Olympics. Four houses (Vikings,
 Gladiators, Samurai, Knights), roughly 30 students each. Scores are typed into
 a Google Sheet during a live event and shown on a venue screen in front of
 ~120 students, plus a public URL.
@@ -14,7 +14,8 @@ This project is a **port**, not a redesign. It was originally a single
 `Index.html` served by Apps Script itself via `google.script.run`. It was split
 into an Apps Script JSON API plus a static site. The originals are in
 `reference/` — **read-only, never modify them.** They remain the source of
-truth for visual design and copy tone.
+truth for layout, animation and copy tone. The *palette and typography* now
+come from `mesa_forge_design_system/` instead.
 
 ## Architecture
 
@@ -41,12 +42,16 @@ The two halves are independent. Changing a house colour touches only
    two-argument `classList.toggle`. Runs on venue TVs and old laptops.
    `fetch` and `Promise` are acceptable. There are ES5-safe helpers at the top
    of `script.js` (`each`, `findBy`, `setClass`, `detach`) — use them.
-3. **No external JS libraries.** Google Fonts via the existing CSS `@import`
-   is fine.
+3. **No external JS libraries, and no external font requests.** Fonts are
+   self-hosted in `public/assets/fonts/`. Do not reintroduce a Google Fonts
+   `@import` or `<link>` — the page must render with zero third-party
+   requests, because venue wifi is not to be trusted.
 4. **No secrets in the frontend.** Everything in `public/` is public. The
    Apps Script URL is public by design; nothing else goes there.
-5. **Do not change the visual design.** Same palette, typography, layout,
-   animations and copy tone as `reference/current-Index.html`.
+5. **The visual design follows `mesa_forge_design_system/design_system.md`.**
+   This superseded the original brief's "do not change the visual design".
+   The layout, animations and copy tone are still the port of
+   `reference/current-Index.html`; the palette and type system are Forge.
 
 ## The Apps Script CORS rule — the big one
 
@@ -124,6 +129,68 @@ Behaviours that exist because they were bugs once — keep them:
   polling at once do not each re-read the sheet.
 
 **Game names come from column A and change often. Never hardcode them.**
+
+## Design system
+
+Source of truth: `mesa_forge_design_system/design_system.md`. Forge purple,
+not Mesa green — "no green anywhere" in the brand chrome.
+
+`style.css` declares the raw brand palette once in `:root`, then maps it to
+**semantic tokens** that every rule references. Never put a raw hex in a
+component rule; add or repoint a token instead.
+
+    --aubergine #2A1849   dark surfaces (ticker, cutscene backdrop)
+    --royal     #452A74   primary brand, headings, points
+    --amethyst  #5A3A8E   secondary surfaces
+    --violet    #7C4DCC   emphasis, ~5% of the page
+    --orchid    #E4A7F3   soft highlight, ring motif, cutscene headline
+    --lavender  #F5EDFB   page background
+    --ink       #1D1C1D   body text
+
+    -> --bg --panel --primary --primary-light --surface-dark --text
+       --muted --border --hover --blank --accent --accent-soft --accent-ink
+
+Things that are deliberate, not oversights:
+
+- **There is no gold.** `--accent` (Vivid Violet) carries the "winner /
+  complete / urgent" role gold used to. The trophy glyphs carry the medal
+  semantics instead.
+- **House colours are exempt from the brand.** Gladiators is green because
+  the crest students wear is green. They live in `config.js`, never in CSS.
+- **Momentum arrows stay green/red.** That is data semantics, not brand.
+- **Newsreader, not New York.** New York is Apple's system serif and is not
+  licensed for web embedding. The design system nominates Newsreader as the
+  substitute. Apple's TTFs are git-ignored so they never reach the public
+  repo.
+- **Fonts are self-hosted** variable woff2 (Manrope 24KB, Newsreader 132KB).
+  The old build used a render-blocking Google Fonts `@import`, which is a bad
+  bet on venue wifi.
+- **The ring motif** ("faint Orchid concentric rings anchored bottom-right",
+  per the design system) is `body::before` in pure CSS, so it costs nothing
+  to download and scales to any screen. Only `.wrap` gets a stacking context
+  above it — do **not** add `position: relative` to `#side-nav-tab` or
+  `#side-nav`, they are `position: fixed` and it drops them into normal flow.
+
+Contrast was verified against WCAG AA for every fg/bg pair. Two failed and
+were fixed: the cutscene headline (royal on violet, 2.1:1 -> aubergine on
+orchid, 8.4:1) and the not-started pill (4.4:1 -> 8.6:1). Re-run that check
+if you touch the palette.
+
+## Responsive
+
+The original had no media queries at all; the house card is a fixed 4-column
+grid that overflows below ~700px. Breakpoints now: >=1700 (venue TV, scaled
+up), <=1100 (laptop), <=860 (tablet), <=640 (phone), <=380 (small phone),
+plus short-landscape.
+
+On phones the card switches to two rows via `grid-template-areas`, and the
+race bar is drawn by `.house-card::after` from a `--bar-pct` custom property
+that `renderRanking()` sets alongside the normal `.race-fill` width. If you
+change how the bar is sized, change both.
+
+Also shipped: `prefers-reduced-motion`, `:focus-visible` rings, `100dvh` on
+the hero, a print stylesheet, and the breakdown table scrolling sideways
+inside `.table-scroll` with a mask fade.
 
 ## Conventions settled on during the port
 

@@ -1,6 +1,6 @@
-# House Olympics Leaderboard
+# Forge Olympics Leaderboard
 
-A live scoreboard for the Mesa House Olympics. Four houses, roughly 30
+A live scoreboard for the Mesa Forge House Olympics. Four houses, roughly 30
 students each, scores typed into a Google Sheet during the event and shown on
 a screen in front of about 120 people, plus a public URL students can open on
 their phones.
@@ -62,6 +62,8 @@ return is game names and scores.
 | `public/mock.json` | Sample mid-event scores, for working offline. |
 | `public/mock-complete.json` | Sample finished event, for rehearsing the podium. |
 | `public/assets/logos/*.png` | The four house crests. |
+| `public/assets/fonts/` | Manrope and Newsreader, self-hosted. No Google Fonts request at runtime. |
+| `mesa_forge_design_system/` | The brand source of truth: palette, type rules, logos. Reference only, not published. |
 | `crests-source/` | The original full-size crest files. Source for the tool below. Not published. |
 | `tools/prepare-crests.py` | Regenerates the crest PNGs from `crests-source/`. Run after replacing artwork. |
 | `reference/` | The previous single-file version. Read-only history, not used at runtime. |
@@ -115,11 +117,72 @@ If `API_URL` is left blank, the site quietly falls back to the sample data and
 says `Demo data · API_URL not set` in the corner, rather than showing a blank
 screen.
 
+### Branding and the design system
+
+The look follows `mesa_forge_design_system/design_system.md` — the Forge purple
+identity, not the Mesa parent green.
+
+**Colours.** Every colour is a CSS custom property at the top of `style.css`.
+The brand palette is declared once, then mapped to semantic roles that the
+components actually use, so re-skinning is a handful of lines:
+
+| Token | Hex | Role |
+|---|---|---|
+| `--aubergine` | `#2A1849` | dark surfaces: the ticker, the cutscene backdrop |
+| `--royal` | `#452A74` | primary brand, headings, points |
+| `--amethyst` | `#5A3A8E` | secondary surfaces and fills |
+| `--violet` | `#7C4DCC` | emphasis: champion, complete, urgent. ~5% of the page |
+| `--orchid` | `#E4A7F3` | soft highlight, the ring motif, cutscene headline |
+| `--lavender` | `#F5EDFB` | page background |
+| `--ink` | `#1D1C1D` | body text |
+
+The Forge system has no gold, so **Vivid Violet carries the "winner" role**
+that gold used to, and the trophy glyphs do the medal semantics.
+
+House colours are deliberately *not* part of this. They are tied to the
+physical crests students wear, so Gladiators stays green even though the
+brand system is purple-only. They live in `config.js`.
+
+**Type.** Newsreader for the two display moments (the page title and the
+podium heading), Manrope for everything else. Both are self-hosted variable
+woff2 files, 156KB total.
+
+> The design system names **New York** for display. That is Apple's system
+> serif and is not licensed for embedding on a website, so this uses
+> **Newsreader** — the substitute the design system itself nominates. Apple's
+> files are in `mesa_forge_design_system/fonts/` for reference and are
+> git-ignored so they never reach the public repo.
+
+**Contrast** was checked against WCAG AA across every foreground/background
+pair. Two failed and were fixed: the cutscene headline (was 2.1:1, now 8.4:1)
+and the "Not Started" pill (was 4.4:1, now 8.6:1).
+
+### Responsive
+
+The board has three audiences and a breakpoint for each:
+
+| Width | Behaviour |
+|---|---|
+| ≥1700px | Venue TV. Type and spacing scale up to be read across a room. |
+| 1100–1700px | Laptop driving the screen. The default. |
+| ≤860px | Tablet. Tighter grid, smaller crests. |
+| ≤640px | Phone. The house card becomes two rows — identity on top, full-width race bar underneath — so names and scores never get squeezed. The breakdown table scrolls sideways with a fade on the edge. |
+| ≤380px | Small phone. |
+
+Also handled: `prefers-reduced-motion` (this page is almost entirely
+animation, so it respects the OS setting and stops moving while still showing
+every score), keyboard focus rings, `100dvh` so the mobile address bar does
+not crop the hero, and a print stylesheet for a final results sheet.
+
 ### Changing houses, colours or copy
 
 Everything a non-developer would want to change is in **`public/config.js`**,
 with a comment on each setting. Editing it needs no rebuild — save, redeploy,
 done.
+
+`EVENT_TITLE` drives the page heading, the browser tab, and the ticker copy —
+lines like "{house} are your Forge Olympics Champions!" pick the name up
+automatically, so renaming the event is a one-line change.
 
 House `name` must match the sheet column header **exactly**. A house in the
 sheet with no matching config entry still renders, as a grey circle with its

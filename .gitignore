@@ -3,3 +3,9 @@ node_modules/
 .vercel
 .netlify
 *.log
+
+# Apple's New York is licensed for use on Apple platforms, not for
+# redistribution in a public repo or for embedding on a website. The design
+# system itself nominates Newsreader (SIL OFL) as the free substitute, and
+# that is what public/assets/fonts/ actually ships.
+mesa_forge_design_system/fonts/Mesa fonts/NewYork/
