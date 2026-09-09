@@ -474,6 +474,15 @@ th {
   letter-spacing: 0.4px;
   text-transform: uppercase;
   background: var(--hover);
+  /* The house columns carry a .col-dot before the label. Left to wrap, the
+     dot dropped onto its own line as soon as the column got narrow, so the
+     house headers became two lines tall while MAX and WINNER stayed one -
+     and vertical centring then put their labels at different heights. It was
+     also inline on desktop and stacked on mobile, i.e. two different layouts
+     depending on width. nowrap makes it one layout everywhere; the table
+     already scrolls sideways on a phone, so the extra width is free. */
+  white-space: nowrap;
+  vertical-align: middle;
 }
 td:first-child { text-align: left; color: var(--text); font-weight: 800; }
 /* The header row reads as one quiet band; the first cell should not shout. */

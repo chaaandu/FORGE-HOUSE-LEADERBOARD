@@ -162,6 +162,15 @@ Purple at falling opacity, the way UIKit derives `label` -> `secondaryLabel`
 `--muted`, `--blank` and `--border` are aliases onto these. If you need a
 quieter tone, take the next label weight; do not invent a hex.
 
+**Table headers must not wrap.** The house columns carry a `.col-dot` before
+the label. Left to wrap, the dot dropped onto its own line as soon as a column
+got narrow, so house headers became two lines while `MAX` and `WINNER` stayed
+one — and vertical centring then put their labels at visibly different
+heights. It was also inline on desktop and stacked on mobile, i.e. two
+different layouts by width. `th { white-space: nowrap }` makes it one layout
+everywhere; the table already scrolls sideways on a phone so the width is
+free.
+
 **Never set a house colour as text colour.** Vikings yellow is 1.6:1 and
 Gladiators green 2.9:1 on these surfaces. In the breakdown table the house
 colour is carried by `.col-dot` and by the winner cell's background tint,
@@ -201,10 +210,12 @@ grid that overflows below ~700px. Breakpoints now: >=1700 (venue TV, scaled
 up), <=1100 (laptop), <=860 (tablet), <=640 (phone), <=380 (small phone),
 plus short-landscape.
 
-On phones the card switches to two rows via `grid-template-areas`, and the
-race bar is drawn by `.house-card::after` from a `--bar-pct` custom property
-that `renderRanking()` sets alongside the normal `.race-fill` width. If you
-change how the bar is sized, change both.
+The house card is **one row at every width** — `rank · crest · name+sub ·
+points`. The phone used to need a bespoke two-row `grid-template-areas` to
+carry the race bar; that went away when the bar became the card's bottom
+edge. The bar is drawn solely by `.house-card::after` from the `--bar-pct`
+custom property that `renderRanking()` sets. There is no `.race-track` or
+`.race-fill` any more — one element, one source of truth.
 
 Also shipped: `prefers-reduced-motion`, `:focus-visible` rings, `100dvh` on
 the hero, a print stylesheet, and the breakdown table scrolling sideways
@@ -335,8 +346,6 @@ a status dot.
 - **Server-reported errors are tagged `err.fromServer`** and are *not* retried
   over JSONP. A misconfigured sheet answers the same way twice, and retrying
   would double every screen's request rate against the Apps Script quota.
-- `TICKER_MS` (6000) must stay in step with the `fadeInOut` animation duration
-  in `style.css`.
 
 ## Reliability model
 
@@ -344,9 +353,9 @@ Deliberate, because this runs unattended in front of a room:
 
 - A failed poll **never clears the screen.** `lastData` stays rendered.
 - **One** failure changes nothing visible — a single dropped request is normal.
-- **Two consecutive** failures show an amber pulsing dot and
-  `Showing last scores from HH:MM:SS`. The underlying error is in the
-  `title` tooltip and the console, not on screen.
+- **Two consecutive** failures show an amber dot and `Last updated 12 min
+  ago`. The underlying error is in the `title` tooltip and the console, not
+  on screen. See **Freshness copy** for why the wording changes.
 - Backoff ladder `[5s, 10s, 20s, 40s, 60s]`, returning to `REFRESH_MS` on the
   first success.
 - `?mock=1` / `?mock=complete` force sample data regardless of config, so the
@@ -370,16 +379,17 @@ The tool:
 
 - Strips the background by flood-filling inwards **from the border**, so dark
   areas inside the shield survive. The supplied originals were opaque black,
-  which rendered as black rectangles on the cream `#FBF8F0` page and as black
-  slabs in the clash cutscene. A naive "remove all black" punches holes
+  which rendered as black rectangles on the lavender `#F5EDFB` page and as
+  black slabs in the clash cutscene. A naive "remove all black" punches holes
   through the artwork.
 - Softens the anti-aliased fringe by luma, so there is no dark halo on cream.
 - Trims to the artwork, then scales every crest to the **same** artwork height
   (600px) centred on an **identical** 420×620 canvas. This is the part that
   matters visually: the source files have different proportions and different
   built-in padding, so without it the four crests render at visibly different
-  sizes. Cards set `height: 68px` with `width: auto`, so a shared canvas
-  aspect ratio is what guarantees a uniform footprint.
+  sizes. Cards set an explicit `.house-badge` height that steps down by
+  breakpoint (78 / 62 / 56 / 50 / 42 / 36px) with `width: auto`, so a shared
+  canvas aspect ratio is what guarantees a uniform footprint at every size.
 - Box-downscales with **premultiplied** alpha, otherwise averaging against
   transparent black darkens every edge.
 
@@ -394,9 +404,10 @@ verified with a fifth unconfigured house.
 
 All verified working against the mock data with headless Chrome.
 
-**Overview:** rank cards · race bars sized to the current leader (not the
-theoretical max) · animated count-up with pop flash · FLIP reorder animation ·
-leader glow and ambient sparkles · momentum arrows vs the previous poll ·
+**Overview:** rank cards · race bar as the card's bottom edge, sized to the
+current leader (not the theoretical max) · animated count-up with pop flash ·
+FLIP reorder animation · static leader ring, no ambient motion · gap-to-leader
+sub-line · momentum arrows vs the previous poll ·
 pre-game state (bullets not ranks, no leader, no momentum) · nail-biter
 callout within `CLOSE_RACE_GAP` ·
 per-game breakdown with sole-winner highlighting and tie handling · podium
