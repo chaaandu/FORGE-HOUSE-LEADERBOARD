@@ -46,10 +46,27 @@
   --primary-light: var(--amethyst);
   --surface-dark:  var(--aubergine);
   --text:          var(--ink);
-  --muted:         #6E6480;   /* lavender-leaning grey, not a neutral grey */
-  --border:        #E7DCF5;
   --hover:         #F7F2FC;
-  --blank:         #BEB3CE;   /* the em-dash in unscored cells */
+
+  /* ---- Label hierarchy ----
+     There is no grey anywhere in this interface. Every quieter tone is the
+     SAME Royal Purple at falling opacity, the way UIKit derives label ->
+     secondaryLabel -> tertiaryLabel -> quaternaryLabel. One hue, four
+     weights. It cannot clash with the palette because it IS the palette,
+     and it composites correctly on both the lavender page and white cards.
+
+     Contrast on lavender / on white:
+       label-2  5.49 / 5.98  - passes AA for body text on both
+       label-3  2.8         - decorative only, the em-dash on unscored cells
+       label-4  hairlines, never text */
+  --label-1: var(--ink);
+  --label-2: rgba(69, 42, 116, 0.78);
+  --label-3: rgba(69, 42, 116, 0.50);
+  --label-4: rgba(69, 42, 116, 0.14);
+
+  --muted:  var(--label-2);
+  --blank:  var(--label-3);
+  --border: var(--label-4);
 
   /* Victory and emphasis. This is the old --gold role. The Forge system has
      no gold, so Vivid Violet carries "winner / complete / urgent" instead,
@@ -210,13 +227,32 @@ h1 {
   position: relative;
   background: var(--panel);
   border-radius: var(--radius);
-  padding: 14px 24px;
+  /* Extra bottom padding leaves room for the race bar, which is now the
+     card's bottom edge rather than a floating element inside the row. */
+  padding: 18px 26px 22px;
   display: grid;
-  grid-template-columns: 46px 110px 1fr 150px;
+  grid-template-columns: 58px 96px 1fr 168px;
   align-items: center;
-  gap: 20px;
+  gap: 22px;
   border: 1px solid var(--border);
-  box-shadow: 0 1px 3px rgba(17,64,59,0.06);
+  box-shadow: 0 1px 3px rgba(42, 24, 73, 0.06);
+  overflow: hidden;
+}
+
+/* The race bar. It used to sit squashed under the house name, competing
+   with it for the middle column. As the card's base it reads from much
+   further away, every card starts at the same left edge so lengths are
+   directly comparable, and the middle column is freed for the name. */
+.house-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 5px;
+  width: var(--bar-pct, 0%);
+  background: var(--house-color, var(--muted));
+  border-radius: 0 3px 0 0;
+  transition: width 0.9s cubic-bezier(.2,.8,.2,1);
 }
 
 .house-card.leader {
@@ -345,18 +381,24 @@ h1 {
 }
 
 .rank-num {
-  font-size: 26px;
+  font-size: 34px;
   font-weight: 800;
-  color: var(--muted);
+  color: var(--label-3);
   text-align: center;
+  letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
 }
-.house-card.leader .rank-num { color: var(--text); }
+/* The leader gets the brand colour rather than its house colour: a yellow
+   numeral on white is about 1.9:1 and unreadable. The house colour still
+   marks the leader on the border and the bar, where contrast rules do not
+   apply to a graphic. */
+.house-card.leader .rank-num { color: var(--primary); }
 
 .house-badge {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 68px;
+  height: 62px;
 }
 .house-badge img { height: 100%; width: auto; object-fit: contain; }
 .house-badge .fallback-badge {
@@ -375,18 +417,34 @@ h1 {
 .house-main {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 3px;
+  min-width: 0;
 }
 
 .name-momentum-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 15px;
+  gap: 9px;
+  /* Was 15px against a 28px score. A student across a room is looking for
+     their house first and the number second, so the name was the thing
+     under-weighted. */
+  font-size: 21px;
   font-weight: 800;
   color: var(--text);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The one number every student in the room is actually asking for. */
+.house-sub {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.2px;
+  font-variant-numeric: tabular-nums;
 }
 
 .momentum { font-size: 13px; font-weight: 800; }
@@ -394,46 +452,21 @@ h1 {
 .momentum.down { color: var(--down); }
 .momentum.same { color: var(--muted); }
 
-.race-track {
-  height: 16px;
-  background: var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-.race-fill {
-  position: relative;
-  overflow: hidden;
-  height: 100%;
-  border-radius: 10px;
-  background: var(--house-color, var(--muted));
-  transition: width 0.9s cubic-bezier(.2,.8,.2,1);
-  width: 0%;
-}
-.race-fill::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -60%;
-  width: 45%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.65), transparent);
-  animation: shimmer 2.6s ease-in-out infinite;
-}
-@keyframes shimmer {
-  0% { left: -60%; }
-  100% { left: 130%; }
-}
-
 .house-points {
   text-align: right;
-  font-size: 28px;
+  /* "POINTS" was printed above this number on every card. A large figure in
+     the last column of a scoreboard is self-evidently points; the label was
+     static text sitting in the highest-value spot on the row. */
+  font-size: 38px;
+  line-height: 1;
   font-weight: 800;
   color: var(--primary);
   font-variant-numeric: tabular-nums;
 }
 .house-points .pval {
   display: inline-block;
-  font-size: 28px;
+  font-size: 38px;
+  line-height: 1;
   font-weight: 800;
   color: var(--primary);
 }
@@ -442,14 +475,6 @@ h1 {
   0% { transform: scale(1); }
   30% { transform: scale(1.4); color: var(--house-color, var(--accent)); }
   100% { transform: scale(1); }
-}
-.house-points .plabel {
-  font-size: 12px;
-  color: var(--muted);
-  font-weight: 600;
-  display: block;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 /* ---------- Per-game breakdown ---------- */
@@ -472,32 +497,46 @@ table {
   border: 1px solid var(--border);
 }
 th, td {
-  padding: 10px 14px;
+  padding: 11px 14px;
   text-align: center;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--label-4);
+  font-variant-numeric: tabular-nums;
 }
 th {
-  color: var(--muted);
+  color: var(--label-2);
   font-weight: 800;
   font-size: 12px;
+  letter-spacing: 0.4px;
   text-transform: uppercase;
   background: var(--hover);
 }
-td:first-child, th:first-child { text-align: left; color: var(--text); font-weight: 800; }
+td:first-child { text-align: left; color: var(--text); font-weight: 800; }
+/* The header row reads as one quiet band; the first cell should not shout. */
+th:first-child { text-align: left; font-weight: 800; }
+
+/* House identity in the table: a colour token, never coloured type. */
+.col-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 7px;
+  vertical-align: 1px;
+}
 tr:last-child td { border-bottom: none; }
-.cell-blank { color: var(--blank); }
+.cell-blank { color: var(--label-3); }
 
 .cell-winner {
   font-weight: 800;
-  color: var(--win-color, var(--accent));
-  background: color-mix(in srgb, var(--win-color, var(--accent)) 10%, transparent);
+  color: var(--text);
+  background: color-mix(in srgb, var(--win-color, var(--accent)) 14%, transparent);
 }
 .winner-cell {
   font-weight: 800;
-  color: var(--win-color, var(--muted));
+  color: var(--text);
   white-space: nowrap;
 }
-.winner-cell.tie { color: var(--muted); font-weight: 700; font-size: 12.5px; }
+.winner-cell.tie { color: var(--label-2); font-weight: 700; font-size: 12.5px; }
 
 /* ---------- Per-game navigation ---------- */
 #side-nav-tab {
@@ -577,7 +616,7 @@ tr:last-child td { border-bottom: none; }
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--blank);
+  background: var(--label-3);
 }
 .snl-dot.snl-progress { background: var(--primary-light); }
 .snl-dot.snl-complete { background: var(--accent); }
@@ -1007,38 +1046,6 @@ tr:last-child td { border-bottom: none; }
 
 
 /* ==================================================================
-   FORGE RING MOTIF
-   "Faint Orchid to Lavender concentric rings anchored bottom-right on
-   every surface" - design_system.md. Done in CSS rather than as an
-   image so it costs nothing to download and scales to any screen.
-   Sits behind everything and never intercepts a click.
-   ================================================================== */
-
-body::before {
-  content: '';
-  position: fixed;
-  right: -18vmax;
-  bottom: -18vmax;
-  width: 78vmax;
-  height: 78vmax;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(circle, transparent 39%, rgba(228,167,243,0.16) 40%, rgba(228,167,243,0.16) 41.5%, transparent 42%),
-    radial-gradient(circle, transparent 55%, rgba(228,167,243,0.13) 56%, rgba(228,167,243,0.13) 57.5%, transparent 58%),
-    radial-gradient(circle, transparent 71%, rgba(228,167,243,0.10) 72%, rgba(228,167,243,0.10) 73.5%, transparent 74%),
-    radial-gradient(circle, rgba(228,167,243,0.07) 0%, transparent 62%);
-}
-
-/* Everything real sits above the motif. Only .wrap needs a stacking
-   context here - the side nav and its tab are position:fixed with their
-   own z-index of 900, and setting position:relative on them would drop
-   them back into normal flow. */
-.wrap { position: relative; z-index: 1; }
-
-
-/* ==================================================================
    RESPONSIVE
    This screen has three genuinely different audiences: a venue TV
    across a room, a laptop driving it, and ~120 students on phones.
@@ -1050,13 +1057,13 @@ body::before {
         the back of a room, not from a desk. ---- */
 @media (min-width: 1700px) {
   .wrap { max-width: 1640px; }
-  .house-card { grid-template-columns: 64px 132px 1fr 190px; padding: 20px 30px; }
-  .house-badge { height: 84px; }
-  .rank-num { font-size: 34px; }
-  .name-momentum-row { font-size: 19px; }
-  .house-points .pval, .house-points { font-size: 36px; }
-  .house-points .plabel { font-size: 13px; }
-  .race-track { height: 20px; }
+  .house-card { grid-template-columns: 74px 118px 1fr 210px; padding: 22px 34px 26px; gap: 26px; }
+  .house-card::after { height: 6px; }
+  .house-badge { height: 78px; }
+  .rank-num { font-size: 44px; }
+  .name-momentum-row { font-size: 26px; }
+  .house-sub { font-size: 14px; }
+  .house-points .pval, .house-points { font-size: 48px; }
   table { font-size: 16px; }
   th, td { padding: 13px 16px; }
 }
@@ -1064,9 +1071,11 @@ body::before {
 /* ---- Laptops and small desktops ---- */
 @media (max-width: 1100px) {
   .wrap { padding: 0 22px; }
-  .house-card { grid-template-columns: 44px 92px 1fr 124px; gap: 16px; padding: 13px 18px; }
-  .house-badge { height: 60px; }
-  .house-points .pval, .house-points { font-size: 25px; }
+  .house-card { grid-template-columns: 52px 86px 1fr 148px; gap: 18px; padding: 16px 22px 20px; }
+  .house-badge { height: 56px; }
+  .rank-num { font-size: 30px; }
+  .name-momentum-row { font-size: 19px; }
+  .house-points .pval, .house-points { font-size: 33px; }
 }
 
 /* ---- Tablets ---- */
@@ -1075,11 +1084,12 @@ body::before {
   .hero { padding: 18px 0 26px; }
   .brand-mark img { height: 32px; }
   .title-flair { font-size: 16px; letter-spacing: 8px; }
-  .house-card { grid-template-columns: 38px 74px 1fr 104px; gap: 14px; }
-  .house-badge { height: 52px; }
-  .rank-num { font-size: 21px; }
-  .name-momentum-row { font-size: 14px; }
-  .house-points .pval, .house-points { font-size: 22px; }
+  .house-card { grid-template-columns: 44px 70px 1fr 120px; gap: 15px; padding: 14px 18px 18px; }
+  .house-badge { height: 50px; }
+  .rank-num { font-size: 27px; }
+  .name-momentum-row { font-size: 17px; }
+  .house-sub { font-size: 11.5px; }
+  .house-points .pval, .house-points { font-size: 28px; }
   .podium-col { width: 116px; }
   .podium-crest { height: 60px; }
   .podium-col.rank-1 .podium-crest { height: 76px; }
@@ -1106,35 +1116,20 @@ body::before {
   .callout { font-size: 13px; padding: 9px 13px; border-radius: 10px; }
 
   #ranking { gap: 10px; }
+  /* One row at every width now. The bar is the card's bottom edge, so the
+     phone no longer needs a bespoke second row to carry it. */
   .house-card {
-    grid-template-columns: 30px 48px 1fr auto;
-    grid-template-areas:
-      'rank crest name points'
-      'bar  bar   bar  bar';
-    gap: 6px 12px;
-    padding: 12px 14px;
+    grid-template-columns: 34px 46px 1fr auto;
+    gap: 12px;
+    padding: 13px 15px 16px;
     border-radius: 14px;
   }
-  .house-card > .rank-num  { grid-area: rank; font-size: 17px; }
-  .house-card > .house-badge { grid-area: crest; height: 42px; }
-  .house-card > .house-main { grid-area: name; display: block; min-width: 0; }
-  .house-card > .house-points { grid-area: points; }
-  .house-main .race-track { display: none; }
-
-  /* The bar moves to its own full-width row so it stays readable. */
-  .house-card::after {
-    content: '';
-    grid-area: bar;
-    height: 9px;
-    border-radius: 8px;
-    background: var(--border);
-    background-image: linear-gradient(90deg, var(--house-color, var(--muted)) 0 var(--bar-pct, 0%), transparent var(--bar-pct, 0%));
-    background-repeat: no-repeat;
-  }
-
-  .name-momentum-row { font-size: 13px; letter-spacing: 0.3px; }
-  .house-points .pval, .house-points { font-size: 21px; }
-  .house-points .plabel { font-size: 10px; }
+  .house-card::after { height: 4px; }
+  .rank-num { font-size: 22px; letter-spacing: -0.5px; }
+  .house-badge { height: 42px; }
+  .name-momentum-row { font-size: 15px; letter-spacing: 0.2px; }
+  .house-sub { font-size: 11px; }
+  .house-points .pval, .house-points { font-size: 24px; }
   .champion-badge { font-size: 10px; padding: 3px 9px; right: 12px; }
 
 
@@ -1180,10 +1175,12 @@ body::before {
 }
 
 @media (max-width: 380px) {
-  .house-card { grid-template-columns: 24px 40px 1fr auto; padding: 10px 12px; }
-  .house-card > .house-badge { height: 36px; }
-  .house-points .pval, .house-points { font-size: 19px; }
-  .name-momentum-row { font-size: 12px; }
+  .house-card { grid-template-columns: 28px 38px 1fr auto; gap: 10px; padding: 11px 12px 14px; }
+  .house-badge { height: 36px; }
+  .rank-num { font-size: 19px; }
+  .name-momentum-row { font-size: 13.5px; }
+  .house-sub { font-size: 10.5px; }
+  .house-points .pval, .house-points { font-size: 21px; }
 }
 
 /* Short landscape, e.g. a phone turned sideways or a low projector.
@@ -1221,7 +1218,6 @@ body::before {
     scroll-behavior: auto !important;
   }
   .sparkle,
-  .race-fill::after,
   .confetti-piece { display: none !important; }
   .house-card.leader { box-shadow: 0 0 0 3px var(--house-color, var(--accent)); }
   #big-banner.show,
@@ -1231,7 +1227,7 @@ body::before {
 /* Printing a final results sheet is a plausible thing to want. */
 @media print {
   #side-nav-tab, #side-nav, #confetti-layer, #screen-flash,
-  #clash-overlay, #big-banner, body::before { display: none !important; }
+  #clash-overlay, #big-banner { display: none !important; }
   html, body { background: #fff; }
   .hero { min-height: auto; }
   .house-card { break-inside: avoid; box-shadow: none; }

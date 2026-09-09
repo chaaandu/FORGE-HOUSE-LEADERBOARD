@@ -150,6 +150,23 @@ component rule; add or repoint a token instead.
     -> --bg --panel --primary --primary-light --surface-dark --text
        --muted --border --hover --blank --accent --accent-soft --accent-ink
 
+**There is no grey in this interface.** Every quieter tone is the same Royal
+Purple at falling opacity, the way UIKit derives `label` -> `secondaryLabel`
+-> `tertiaryLabel` -> `quaternaryLabel`. One hue, four weights:
+
+    --label-1  var(--ink)                  primary text
+    --label-2  rgba(69,42,116,0.78)        secondary: th, sub-lines, timestamps
+    --label-3  rgba(69,42,116,0.50)        tertiary: the em-dash on unscored cells
+    --label-4  rgba(69,42,116,0.14)        hairlines, never text
+
+`--muted`, `--blank` and `--border` are aliases onto these. If you need a
+quieter tone, take the next label weight; do not invent a hex.
+
+**Never set a house colour as text colour.** Vikings yellow is 1.6:1 and
+Gladiators green 2.9:1 on these surfaces. In the breakdown table the house
+colour is carried by `.col-dot` and by the winner cell's background tint,
+with the type staying in the label hierarchy.
+
 Things that are deliberate, not oversights:
 
 - **There is no gold.** `--accent` (Vivid Violet) carries the "winner /
@@ -165,11 +182,12 @@ Things that are deliberate, not oversights:
 - **Fonts are self-hosted** variable woff2 (Manrope 24KB, Newsreader 132KB).
   The old build used a render-blocking Google Fonts `@import`, which is a bad
   bet on venue wifi.
-- **The ring motif** ("faint Orchid concentric rings anchored bottom-right",
-  per the design system) is `body::before` in pure CSS, so it costs nothing
-  to download and scales to any screen. Only `.wrap` gets a stacking context
-  above it — do **not** add `position: relative` to `#side-nav-tab` or
-  `#side-nav`, they are `position: fixed` and it drops them into normal flow.
+- **The ring motif was removed** at the client's request. The design system
+  calls for faint Orchid concentric rings on every surface; this screen does
+  without them. If it is ever restored it belongs on `body::before`, and only
+  `.wrap` should get a stacking context above it — do **not** put
+  `position: relative` on `#side-nav-tab` or `#side-nav`, they are
+  `position: fixed` and it drops them into normal flow.
 
 Contrast was verified against WCAG AA for every fg/bg pair. Two failed and
 were fixed: the cutscene headline (royal on violet, 2.1:1 -> aubergine on
@@ -191,6 +209,40 @@ change how the bar is sized, change both.
 Also shipped: `prefers-reduced-motion`, `:focus-visible` rings, `100dvh` on
 the hero, a print stylesheet, and the breakdown table scrolling sideways
 inside `.table-scroll` with a mask fade.
+
+## The house card
+
+Layout is `rank · crest · name+sub · points`, one row at every width.
+
+- **The race bar is the card's bottom edge** (`.house-card::after`, width from
+  the `--bar-pct` custom property that `renderRanking` sets). It used to be a
+  `.race-track`/`.race-fill` pair squashed into the middle column. As the
+  card's base it reads from much further away, and every card starts at the
+  same left edge so lengths compare directly. There is no separate bar
+  element and no shimmer any more.
+- **No "POINTS" label.** It was printed above the number on every card. A
+  large figure in the last column of a scoreboard is self-evidently points.
+- **The sub-line** under the house name carries the gap to the leader —
+  "Leading" / "15 behind" / "Champion". Silent before the event, because
+  "0 behind" for everyone is noise.
+- **The leader's rank numeral is `--primary`, not its house colour.** A yellow
+  numeral on white is 1.9:1. The house colour marks the leader on the border
+  and the bar, where contrast rules do not apply to a graphic.
+
+## Freshness copy
+
+Relative, not a clock time: "Updated just now", "Updated 4 min ago". A clock
+time makes the reader subtract. Apple Mail says "Updated Just Now"; Weather
+says "Updated 3 minutes ago".
+
+The wording carries the state: **"Updated X"** means live, **"Last updated X"**
+means this is the most recent *success* and the data is stale. The exact clock
+time lives in the `title` tooltip for whoever is running the event.
+
+`renderConnection` is also on its own 20s interval, so the label ages while
+polling is backing off instead of sitting on "just now" for a whole cycle.
+`relativeTime()` clamps negative ages to zero — venue laptop clocks drift, and
+`generatedAt` is server time.
 
 ## Removed on purpose — do not add these back
 

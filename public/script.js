@@ -896,9 +896,9 @@
           '<div class="house-badge"></div>' +
           '<div class="house-main">' +
             '<div class="name-momentum-row"><span class="hname"></span><span class="momentum"></span></div>' +
-            '<div class="race-track"><div class="race-fill"></div></div>' +
+            '<div class="house-sub"></div>' +
           '</div>' +
-          '<div class="house-points"><span class="plabel">points</span><span class="pval"></span></div>';
+          '<div class="house-points"><span class="pval"></span></div>';
         cardEls[h.name] = el;
       }
       // Re-appending in ranking order is what reorders the list.
@@ -908,7 +908,7 @@
       setClass(el, 'leader', h.rank === 1 && !notStarted);
 
       // Pre-game: a bullet rather than a rank number, and no leader.
-      el.querySelector('.rank-num').textContent = notStarted ? '•' : ('#' + h.rank);
+      el.querySelector('.rank-num').textContent = notStarted ? '•' : String(h.rank);
 
       var badge = el.querySelector('.house-badge');
       var wantCrest = meta.logo ? meta.logo : ('fallback:' + h.name);
@@ -967,11 +967,22 @@
         momentumEl.className = 'momentum same';
       }
 
+      // The bar is the card's bottom edge at every width, drawn by
+      // .house-card::after from this custom property.
       var pct = notStarted ? 0 : Math.max(3, Math.round((h.total / denom) * 100));
-      el.querySelector('.race-fill').style.width = pct + '%';
-      // Narrow screens draw the bar from .house-card::after instead, on its
-      // own full-width row. Same number, different element.
       el.style.setProperty('--bar-pct', pct + '%');
+
+      // The question the room is actually asking. Silent before the event,
+      // because "0 behind" for everyone is noise.
+      var subEl = el.querySelector('.house-sub');
+      if (notStarted) {
+        subEl.textContent = '';
+      } else if (h.rank === 1) {
+        subEl.textContent = complete ? 'Champion' : 'Leading';
+      } else {
+        var behind = data.ranking[0].total - h.total;
+        subEl.textContent = behind + ' behind';
+      }
     });
 
     // FLIP, part two: slide each card from where it was to where it is.
@@ -1091,8 +1102,12 @@
     var head = byId('breakdown-head');
     var body = byId('breakdown-body');
 
+    // The house colour is carried by a dot, not by the text. As text,
+    // Vikings yellow is 1.6:1 on this surface and Gladiators green 2.9:1 -
+    // both illegible. Colour identifies, the label hierarchy stays readable.
     head.innerHTML = '<th>Game</th>' + data.houseNames.map(function (name) {
-      return '<th style="color:' + escapeHtml(getMeta(name).color) + '">' + escapeHtml(name) + '</th>';
+      return '<th><span class="col-dot" style="background:' +
+        escapeHtml(getMeta(name).color) + '"></span>' + escapeHtml(name) + '</th>';
     }).join('') + '<th>Max</th><th>Winner</th>';
 
     body.innerHTML = data.games.map(function (g) {
@@ -1127,8 +1142,8 @@
       if (!allFilled) {
         winnerCell = '<td class="cell-blank">—</td>';
       } else if (winners.length === 1) {
-        winnerCell = '<td class="winner-cell" style="--win-color:' + escapeHtml(getMeta(winners[0]).color) + '">' +
-          '🏆 ' + escapeHtml(winners[0]) + '</td>';
+        winnerCell = '<td class="winner-cell"><span class="col-dot" style="background:' +
+          escapeHtml(getMeta(winners[0]).color) + '"></span>' + escapeHtml(winners[0]) + '</td>';
       } else {
         winnerCell = '<td class="winner-cell tie">Tie: ' + escapeHtml(winners.join(' / ')) + '</td>';
       }
@@ -1154,6 +1169,29 @@
     return d.toLocaleTimeString();
   }
 
+  /**
+   * Apple does not print a clock time to mean "freshness" - Mail says
+   * "Updated Just Now", Weather says "Updated 3 minutes ago". A clock time
+   * makes the reader do arithmetic: it is 17:12, the label says 17:07, so
+   * that is five minutes. Relative time removes the subtraction, which is
+   * the whole point of the label.
+   *
+   * It also degrades usefully. "Updated just now" is reassuring at a glance,
+   * and "Updated 4 min ago" is a problem you can see before the warning
+   * state even fires.
+   */
+  function relativeTime(then) {
+    if (!then || isNaN(then.getTime())) return '';
+    // Venue laptop clocks drift against Google's servers, and generatedAt is
+    // server time. Never render a negative age as "in 3 minutes".
+    var secs = Math.max(0, Math.round((new Date().getTime() - then.getTime()) / 1000));
+    if (secs < 45) return 'just now';
+    var mins = Math.round(secs / 60);
+    if (mins < 60) return mins + ' min ago';
+    var hrs = Math.round(mins / 60);
+    return hrs + (hrs === 1 ? ' hour ago' : ' hours ago');
+  }
+
   function renderConnection() {
     var dot = byId('conn-dot');
     var el = byId('updated');
@@ -1162,7 +1200,11 @@
     dot.className = 'conn-dot';
     el.classList.remove('conn-warn-text');
 
-    var stamp = formatTime(lastGoodStamp);
+    var ago = relativeTime(lastGoodStamp);
+    // The exact clock time still exists for whoever is running the event,
+    // it just lives in the tooltip instead of on a screen for 120 people.
+    var exact = lastGoodStamp ? ('Last successful update at ' + formatTime(lastGoodStamp)) : '';
+    var why = lastError ? String(lastError.message || lastError) : '';
 
     // One failed poll changes nothing on screen. A single dropped request
     // during an event is normal and not worth putting in front of 120 people.
@@ -1174,10 +1216,12 @@
     if (consecutiveFailures >= 2) {
       dot.classList.add('conn-warn');
       el.classList.add('conn-warn-text');
+      // "Last updated" rather than "Updated": the word "last" is what tells
+      // you this is the most recent success, not the current state.
       el.textContent = lastGoodStamp
-        ? ('Showing last scores from ' + stamp)
+        ? ('Last updated ' + ago)
         : 'Can’t reach the scoreboard';
-      el.title = lastError ? String(lastError.message || lastError) : '';
+      el.title = [exact, why].filter(Boolean).join(' — ');
       return;
     }
 
@@ -1192,13 +1236,13 @@
 
     if (!lastGoodStamp) {
       el.textContent = 'Loading…';
-      el.title = lastError ? String(lastError.message || lastError) : '';
+      el.title = why;
       return;
     }
 
     dot.classList.add('conn-live');
-    el.textContent = 'Updated ' + stamp;
-    el.title = '';
+    el.textContent = 'Updated ' + ago;
+    el.title = exact;
   }
 
   /* ================================================================
@@ -1303,18 +1347,20 @@
         var pct = Math.max(0, Math.min(100, (h.score / denom) * 100));
         var badgeHtml = (idx === 0 && allFilled)
           ? '<div class="champion-badge">🏆 GAME WINNER</div>' : '';
+        var sub = (idx === 0)
+          ? (allFilled ? 'Won this game' : 'Top so far')
+          : ((scored[0].score - h.score) + ' behind');
         return (
           '<div class="house-card' + (idx === 0 ? ' leader' : '') +
-            '" style="--house-color:' + escapeHtml(meta.color) + ';position:relative;">' +
+            '" style="--house-color:' + escapeHtml(meta.color) + ';--bar-pct:' + pct + '%">' +
             badgeHtml +
-            '<div class="rank-num">#' + (idx + 1) + '</div>' +
+            '<div class="rank-num">' + (idx + 1) + '</div>' +
             '<div class="house-badge">' + crestHtml(h.name) + '</div>' +
             '<div class="house-main">' +
               '<div class="name-momentum-row"><span class="hname">' + escapeHtml(h.name) + '</span></div>' +
-              '<div class="race-track"><div class="race-fill" style="width:' + pct + '%"></div></div>' +
+              '<div class="house-sub">' + escapeHtml(sub) + '</div>' +
             '</div>' +
-            '<div class="house-points"><span class="plabel">points</span>' +
-              '<span class="pval">' + h.score + '</span></div>' +
+            '<div class="house-points"><span class="pval">' + h.score + '</span></div>' +
           '</div>'
         );
       }).join('');
@@ -1328,10 +1374,9 @@
             '<div class="house-badge">' + crestHtml(name) + '</div>' +
             '<div class="house-main">' +
               '<div class="name-momentum-row"><span class="hname">' + escapeHtml(name) + '</span></div>' +
-              '<div class="race-track"><div class="race-fill" style="width:0%"></div></div>' +
+              '<div class="house-sub">Not scored yet</div>' +
             '</div>' +
-            '<div class="house-points"><span class="plabel">points</span>' +
-              '<span class="pval">—</span></div>' +
+            '<div class="house-points"><span class="pval">—</span></div>' +
           '</div>'
         );
       }).join('');
@@ -1464,6 +1509,7 @@
     }
 
     renderConnection();
+    setInterval(renderConnection, 20000);
     refresh();
   }
 
