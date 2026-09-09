@@ -1,0 +1,56 @@
+{
+  "ok": true,
+  "houseNames": ["Vikings", "Gladiators", "Samurai", "Knights"],
+  "games": [
+    {
+      "name": "Tug of War",
+      "scores": { "Vikings": 50, "Gladiators": 30, "Samurai": 20, "Knights": 40 },
+      "maxPoints": 50
+    },
+    {
+      "name": "Relay Race",
+      "scores": { "Vikings": 30, "Gladiators": 50, "Samurai": 40, "Knights": 20 },
+      "maxPoints": 50
+    },
+    {
+      "name": "Dodgeball",
+      "scores": { "Vikings": 50, "Gladiators": 40, "Samurai": 50, "Knights": 30 },
+      "maxPoints": 50
+    },
+    {
+      "name": "Quiz Bowl",
+      "scores": { "Vikings": 25, "Gladiators": 20, "Samurai": 35, "Knights": 50 },
+      "maxPoints": 50
+    },
+    {
+      "name": "Penalty Shootout",
+      "scores": { "Vikings": 40, "Gladiators": 50, "Samurai": 30, "Knights": 20 },
+      "maxPoints": 50
+    },
+    {
+      "name": "Chess Blitz",
+      "scores": { "Vikings": 30, "Gladiators": 20, "Samurai": 50, "Knights": 40 },
+      "maxPoints": 50
+    },
+    {
+      "name": "Debate",
+      "scores": { "Vikings": 45, "Gladiators": 35, "Samurai": 25, "Knights": 50 },
+      "maxPoints": 50
+    },
+    {
+      "name": "Cricket Sixes",
+      "scores": { "Vikings": 50, "Gladiators": 40, "Samurai": 30, "Knights": 20 },
+      "maxPoints": 50
+    }
+  ],
+  "ranking": [
+    { "name": "Vikings", "total": 320, "rank": 1 },
+    { "name": "Gladiators", "total": 285, "rank": 2 },
+    { "name": "Samurai", "total": 280, "rank": 3 },
+    { "name": "Knights", "total": 270, "rank": 4 }
+  ],
+  "gamesCompleted": 8,
+  "totalGames": 8,
+  "totalMaxPoints": 400,
+  "generatedAt": "2026-09-09T16:45:00.000Z"
+}

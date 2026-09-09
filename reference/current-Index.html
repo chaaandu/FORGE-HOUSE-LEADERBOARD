@@ -1,0 +1,2251 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>House Olympics</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@600;700;800&display=swap');
+
+    :root {
+      --mesa-bg: #FBF8F0;
+      --mesa-panel: #FFFFFF;
+      --mesa-primary: #11403B;
+      --mesa-primary-light: #1C5850;
+      --text-dark: #16211F;
+      --mesa-muted: #6B7570;
+      --gold: #C99A2E;
+      --gold-soft: #F4E6C4;
+      --border: #E8E2D3;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--mesa-bg);
+      color: var(--text-dark);
+      font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      overflow-x: hidden;
+    }
+
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* ---------- Hero: fills one full screen ---------- */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 26px 0 36px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-mark svg { height: 54px; width: auto; display: block; cursor: default; }
+
+    .updated-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .updated {
+      font-size: 12px;
+      color: var(--mesa-muted);
+      text-align: right;
+    }
+
+    /* ---------- Title ---------- */
+    .title-block {
+      text-align: center;
+      margin: 8px 0 28px;
+    }
+
+    .title-flair {
+      font-size: 20px;
+      letter-spacing: 12px;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+
+    h1 {
+      font-family: 'Anton', 'Segoe UI', sans-serif;
+      font-weight: 700;
+      font-size: clamp(40px, 6vw, 76px);
+      margin: 0;
+      letter-spacing: 5px;
+      line-height: 1;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, var(--mesa-primary-light) 0%, var(--mesa-primary) 12%, var(--mesa-primary) 88%, var(--mesa-primary-light) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .title-underline {
+      width: 130px;
+      height: 4px;
+      background: var(--gold);
+      border-radius: 4px;
+      margin: 16px auto 0;
+    }
+
+    /* ---------- Game progress bar ---------- */
+    .progress-block { margin-bottom: 18px; }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--mesa-muted);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .progress-track {
+      height: 12px;
+      background: var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--mesa-primary-light), var(--mesa-primary));
+      border-radius: 10px;
+      transition: width 1s ease;
+      width: 0%;
+    }
+    .progress-fill.complete {
+      background: linear-gradient(90deg, var(--gold), #E8C55A);
+    }
+
+    /* ---------- Closest race callout ---------- */
+    .callout {
+      background: var(--gold-soft);
+      border: 1px solid var(--gold);
+      border-radius: 12px;
+      padding: 10px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #7A5B12;
+      margin-bottom: 22px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    .callout.show { display: flex; }
+
+    /* ---------- Ranking cards ---------- */
+    #ranking {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 30px;
+    }
+
+    .house-card {
+      position: relative;
+      background: var(--mesa-panel);
+      border-radius: var(--radius);
+      padding: 14px 24px;
+      display: grid;
+      grid-template-columns: 46px 110px 1fr 150px;
+      align-items: center;
+      gap: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(17,64,59,0.06);
+    }
+
+    .house-card.leader {
+      border: 1px solid var(--house-color, var(--gold));
+      animation: glow 2.4s ease-in-out infinite;
+    }
+
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0), 0 2px 8px rgba(17,64,59,0.08); }
+      50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--house-color, var(--gold)) 18%, transparent), 0 2px 8px rgba(17,64,59,0.08); }
+    }
+
+    /* Ambient sparkles behind the leader card */
+    .sparkle {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background: #fff;
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+      box-shadow: 0 0 6px 1px rgba(255,255,255,0.95);
+      animation: sparkleTwinkle 1.9s ease-in-out infinite;
+    }
+    @keyframes sparkleTwinkle {
+      0%, 100% { opacity: 0; transform: scale(0.4); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Champion badge shown on the #1 card once the event is fully complete */
+    .champion-badge {
+      position: absolute;
+      top: -13px;
+      right: 22px;
+      background: var(--gold);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    }
+
+    /* Final results podium */
+    .podium { padding: 8px 0 4px; }
+    .podium-title {
+      text-align: center;
+      font-family: 'Anton', 'Segoe UI', sans-serif;
+      font-size: 28px;
+      letter-spacing: 1px;
+      color: var(--mesa-primary);
+      margin-bottom: 22px;
+    }
+    .podium-stage {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 22px;
+      padding: 0 10px;
+    }
+    .podium-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 150px;
+      opacity: 0;
+      transform: translateY(24px);
+      animation: podiumRise 0.6s cubic-bezier(.2,.8,.3,1) forwards;
+    }
+    .podium-col.rank-2 { animation-delay: 0.1s; }
+    .podium-col.rank-1 { animation-delay: 0.3s; }
+    .podium-col.rank-3 { animation-delay: 0.5s; }
+    @keyframes podiumRise {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .podium-crest {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+    }
+    .podium-col.rank-1 .podium-crest { height: 96px; }
+    .podium-crest img { height: 100%; width: auto; object-fit: contain; }
+    .podium-name {
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--text-dark);
+      text-align: center;
+    }
+    .podium-col.rank-1 .podium-name { font-size: 19px; }
+    .podium-points {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--mesa-muted);
+      margin-bottom: 10px;
+    }
+    .podium-block {
+      width: 100%;
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 10px;
+      font-family: 'Anton', 'Segoe UI', sans-serif;
+      font-size: 30px;
+      color: rgba(255,255,255,0.92);
+      background: linear-gradient(180deg, var(--house-color, var(--gold)) 0%, color-mix(in srgb, var(--house-color, var(--gold)) 70%, black) 100%);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.18);
+    }
+    .podium-col.rank-1 .podium-block { height: 130px; border: 2px solid var(--gold); }
+    .podium-col.rank-2 .podium-block { height: 92px; }
+    .podium-col.rank-3 .podium-block { height: 68px; }
+    .podium-rest {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--mesa-muted);
+      letter-spacing: 0.3px;
+    }
+
+    .rank-num {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--mesa-muted);
+      text-align: center;
+    }
+    .house-card.leader .rank-num { color: var(--text-dark); }
+
+    .house-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 68px;
+    }
+    .house-badge img { height: 100%; width: auto; object-fit: contain; }
+    .house-badge .fallback-badge {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 17px;
+      color: #fff;
+      background: var(--house-color, var(--mesa-muted));
+    }
+
+    .house-main {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .name-momentum-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .momentum { font-size: 13px; font-weight: 800; }
+    .momentum.up { color: #2C8A5A; }
+    .momentum.down { color: #C24A3D; }
+    .momentum.same { color: var(--mesa-muted); }
+
+    .race-track {
+      height: 16px;
+      background: var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .race-fill {
+      position: relative;
+      overflow: hidden;
+      height: 100%;
+      border-radius: 10px;
+      background: var(--house-color, var(--mesa-muted));
+      transition: width 0.9s cubic-bezier(.2,.8,.2,1);
+      width: 0%;
+    }
+    .race-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -60%;
+      width: 45%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.65), transparent);
+      animation: shimmer 2.6s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0% { left: -60%; }
+      100% { left: 130%; }
+    }
+
+    .house-points {
+      text-align: right;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--mesa-primary);
+    }
+    .house-points .pval {
+      display: inline-block;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--mesa-primary);
+    }
+    .house-points .pval.pop { animation: popFlash 0.6s ease; }
+    @keyframes popFlash {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.4); color: var(--house-color, var(--gold)); }
+      100% { transform: scale(1); }
+    }
+    .house-points .plabel {
+      font-size: 12px;
+      color: var(--mesa-muted);
+      font-weight: 600;
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ---------- Trash talk ticker ---------- */
+    .ticker {
+      background: var(--mesa-primary);
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 0;
+      min-height: 22px;
+    }
+    .ticker-line { animation: fadeInOut 6s ease-in-out infinite; }
+    @keyframes fadeInOut {
+      0% { opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { opacity: 0; }
+    }
+
+    /* ---------- Per-game breakdown ---------- */
+    .breakdown-section { padding: 10px 0 50px; }
+    .breakdown-title {
+      font-size: 14px;
+      color: var(--mesa-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+      margin: 0 0 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--mesa-panel);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-size: 14px;
+      border: 1px solid var(--border);
+    }
+    th, td {
+      padding: 10px 14px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      color: var(--mesa-muted);
+      font-weight: 800;
+      font-size: 12px;
+      text-transform: uppercase;
+      background: #F4F1E8;
+    }
+    td:first-child, th:first-child { text-align: left; color: var(--text-dark); font-weight: 800; }
+    tr:last-child td { border-bottom: none; }
+    .cell-blank { color: #C7C0AD; }
+
+    .cell-winner {
+      font-weight: 800;
+      color: var(--win-color, var(--gold));
+      background: color-mix(in srgb, var(--win-color, var(--gold)) 10%, transparent);
+    }
+    .winner-cell {
+      font-weight: 800;
+      color: var(--win-color, var(--mesa-muted));
+      white-space: nowrap;
+    }
+    .winner-cell.tie { color: var(--mesa-muted); font-weight: 700; font-size: 12.5px; }
+
+    /* ---------- Per-game navigation ---------- */
+    #side-nav-tab {
+      position: fixed;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      z-index: 900;
+      background: var(--mesa-primary);
+      color: #fff;
+      border: none;
+      border-radius: 0 10px 10px 0;
+      padding: 16px 8px;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.18);
+      transition: left 0.25s cubic-bezier(.4,0,.2,1);
+    }
+    #side-nav-tab.nav-open { left: 190px; }
+    #side-nav {
+      position: fixed;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      z-index: 900;
+      background: var(--mesa-panel);
+      border: 1px solid var(--border);
+      border-left: none;
+      border-radius: 0 14px 14px 0;
+      box-shadow: 4px 0 16px rgba(0,0,0,0.10);
+      max-height: 82vh;
+      overflow-y: auto;
+      padding: 8px;
+      display: none;
+      flex-direction: column;
+      gap: 3px;
+      width: 190px;
+    }
+    #side-nav.show { display: flex; }
+    .side-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 10px;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-dark);
+      cursor: pointer;
+    }
+    .side-nav-item .snl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .side-nav-item:hover { background: #F4F1E8; }
+    .side-nav-item.active { background: var(--mesa-primary); color: #fff; }
+    .side-nav-item.overview-item {
+      color: var(--mesa-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 11.5px;
+      border-bottom: 1px solid var(--border);
+      border-radius: 8px 8px 0 0;
+      margin-bottom: 3px;
+      padding-bottom: 12px;
+    }
+    .side-nav-item.overview-item.active { color: #fff; border-color: transparent; }
+    .snl-dot {
+      flex: none;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #C7C0AD;
+    }
+    .snl-dot.snl-progress { background: var(--mesa-primary-light); }
+    .snl-dot.snl-complete { background: var(--gold); }
+    .side-nav-item.active .snl-dot { background: #fff; }
+
+    /* ---------- Full-screen single-game view ---------- */
+    #game-view { display: none; }
+    #game-view-ranking {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 8px;
+    }
+    .gv-status-pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+    .gv-status-pill.gv-not-started { background: var(--gold-soft); color: var(--gold); }
+    .gv-status-pill.gv-in-progress { background: #E5F1EE; color: var(--mesa-primary); }
+    .gv-status-pill.gv-complete { background: var(--gold); color: #fff; }
+    .gv-status-row { text-align: center; margin-bottom: 8px; }
+    .gv-pregame-box {
+      text-align: center;
+      font-weight: 700;
+      font-size: 22px;
+      color: var(--mesa-primary);
+      padding: 60px 10px;
+    }
+
+    /* ---------- Confetti ---------- */
+    #confetti-layer {
+      position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 999;
+    }
+    #screen-flash {
+      position: fixed; inset: 0; pointer-events: none; z-index: 998;
+      background: var(--flash-color, transparent);
+      opacity: 0;
+    }
+    #screen-flash.flash-active { animation: screenFlash 0.8s ease-out; }
+    @keyframes screenFlash {
+      0% { opacity: 0; }
+      12% { opacity: 0.35; }
+      100% { opacity: 0; }
+    }
+    .confetti-piece {
+      position: absolute; top: -20px; width: 8px; height: 14px; opacity: 0.9;
+      animation-name: fall; animation-timing-function: linear; animation-fill-mode: forwards;
+    }
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0.25; }
+    }
+
+    #big-banner {
+      position: fixed; top: 38%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.3) rotate(-8deg);
+      background: linear-gradient(135deg, var(--banner-color, var(--gold)), var(--mesa-primary-light) 130%);
+      border: 5px solid rgba(255,255,255,0.85);
+      color: #fff;
+      font-family: 'Anton', 'Segoe UI', sans-serif;
+      font-weight: 400;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-size: 40px;
+      line-height: 1.15;
+      padding: 30px 56px;
+      border-radius: 32px;
+      opacity: 0;
+      z-index: 1000;
+      pointer-events: none;
+      text-align: center;
+      max-width: 80vw;
+      box-shadow: 0 24px 60px rgba(17,64,59,0.35), 0 0 0 8px rgba(255,255,255,0.18);
+    }
+    #big-banner.show {
+      opacity: 1;
+      animation: bannerPop 0.8s cubic-bezier(.34,1.56,.64,1) forwards, bannerFloat 2.4s ease-in-out 0.8s infinite;
+    }
+    @keyframes bannerPop {
+      0% { transform: translate(-50%, -50%) scale(0.3) rotate(-8deg); }
+      55% { transform: translate(-50%, -50%) scale(1.1) rotate(3deg); }
+      75% { transform: translate(-50%, -50%) scale(0.95) rotate(-1.5deg); }
+      100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+    }
+    @keyframes bannerFloat {
+      0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(-1deg) translateY(0); }
+      50% { transform: translate(-50%, -50%) scale(1.02) rotate(1deg) translateY(-6px); }
+    }
+
+    /* ---------- Clash cutscene ---------- */
+    #clash-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1100;
+      background: radial-gradient(circle at center, rgba(28,88,80,0.97) 0%, rgba(17,64,59,0.98) 55%, rgba(9,34,31,1) 100%);
+      opacity: 0;
+      pointer-events: none;
+      overflow: hidden;
+      transition: opacity 0.4s ease;
+    }
+    #clash-overlay.show {
+      opacity: 1;
+      animation: clashShake 0.6s ease-in-out;
+    }
+    @keyframes clashShake {
+      0%, 100% { transform: translate(0, 0); }
+      10% { transform: translate(-8px, 5px); }
+      20% { transform: translate(8px, -5px); }
+      30% { transform: translate(-6px, 7px); }
+      40% { transform: translate(6px, -7px); }
+      50% { transform: translate(-4px, 4px); }
+      60%, 100% { transform: translate(0, 0); }
+    }
+
+    .clash-burst {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      transform: translate(-50%, -50%) scale(0);
+      background: conic-gradient(from 0deg,
+        var(--gold) 0deg 18deg, transparent 18deg 36deg,
+        var(--gold) 36deg 54deg, transparent 54deg 72deg,
+        var(--gold) 72deg 90deg, transparent 90deg 108deg,
+        var(--gold) 108deg 126deg, transparent 126deg 144deg,
+        var(--gold) 144deg 162deg, transparent 162deg 180deg,
+        var(--gold) 180deg 198deg, transparent 198deg 216deg,
+        var(--gold) 216deg 234deg, transparent 234deg 252deg,
+        var(--gold) 252deg 270deg, transparent 270deg 288deg,
+        var(--gold) 288deg 306deg, transparent 306deg 324deg,
+        var(--gold) 324deg 342deg, transparent 342deg 360deg);
+      border-radius: 50%;
+      opacity: 0;
+    }
+    #clash-overlay.show .clash-burst { animation: clashBurst 0.5s ease-out forwards; }
+    @keyframes clashBurst {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 0.9; }
+      100% { transform: translate(-50%, -50%) scale(38); opacity: 0; }
+    }
+
+    .clash-arena { position: absolute; inset: 0; }
+
+    .clash-crest {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 110px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .clash-crest img, .clash-crest .fallback-badge {
+      width: 100%;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 10px 22px rgba(0,0,0,0.45));
+    }
+
+    .clash-winner {
+      width: 190px;
+      z-index: 5;
+      animation: clashWinnerIn 0.6s cubic-bezier(.34,1.56,.64,1) forwards,
+                 clashWinnerBounce 0.9s ease-in-out 0.6s infinite;
+    }
+    @keyframes clashWinnerIn {
+      0% { transform: translate(-50%, -50%) scale(0.2) rotate(-25deg); opacity: 0; }
+      55% { transform: translate(-50%, -50%) scale(1.25) rotate(8deg); opacity: 1; }
+      75% { transform: translate(-50%, -50%) scale(0.95) rotate(-4deg); }
+      100% { transform: translate(-50%, -50%) scale(1.1) rotate(0deg); opacity: 1; }
+    }
+    @keyframes clashWinnerBounce {
+      0%, 100% { transform: translate(-50%, -50%) scale(1.1, 1.1) rotate(0deg) translateY(0); filter: drop-shadow(0 0 18px var(--gold)); }
+      25% { transform: translate(-50%, -50%) scale(1.15, 1.03) rotate(-5deg) translateY(-12px); filter: drop-shadow(0 0 28px var(--gold)); }
+      50% { transform: translate(-50%, -50%) scale(1.06, 1.12) rotate(0deg) translateY(-2px); filter: drop-shadow(0 0 36px var(--gold)); }
+      75% { transform: translate(-50%, -50%) scale(1.15, 1.03) rotate(5deg) translateY(-12px); filter: drop-shadow(0 0 28px var(--gold)); }
+    }
+
+    .clash-loser {
+      --dx: -34vw;
+      --dy: -16vh;
+      --rot: -30deg;
+      animation-duration: 1.7s;
+      animation-timing-function: linear;
+      animation-fill-mode: forwards;
+    }
+
+    @keyframes loserRubberBounce {
+      0%   { transform: translate(-50%, -50%) scale(0.7, 0.7) rotate(0deg); opacity: 0; }
+      8%   { opacity: 1; transform: translate(-50%, -50%) scale(1.3, 0.6) rotate(0deg); }
+      24%  { transform: translate(calc(-50% + var(--dx) * 0.32), calc(-50% + var(--dy) * 0.32 - 11vh)) scale(0.75, 1.2) rotate(calc(var(--rot) * 0.3)); }
+      38%  { transform: translate(calc(-50% + var(--dx) * 0.5), calc(-50% + var(--dy) * 0.5)) scale(1.2, 0.75) rotate(calc(var(--rot) * 0.5)); }
+      56%  { transform: translate(calc(-50% + var(--dx) * 0.72), calc(-50% + var(--dy) * 0.72 - 6vh)) scale(0.85, 1.12) rotate(calc(var(--rot) * 0.7)); }
+      70%  { transform: translate(calc(-50% + var(--dx) * 0.85), calc(-50% + var(--dy) * 0.85)) scale(1.08, 0.87) rotate(calc(var(--rot) * 0.85)); }
+      86%  { transform: translate(calc(-50% + var(--dx) * 0.96), calc(-50% + var(--dy) * 0.96 - 2.5vh)) scale(0.95, 1.05) rotate(var(--rot)); }
+      100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.85, 0.85) rotate(var(--rot)); opacity: 0.95; }
+    }
+    @keyframes loserBigBounceSpin {
+      0%   { transform: translate(-50%, -50%) scale(0.7) rotate(0deg); opacity: 0; }
+      10%  { opacity: 1; transform: translate(-50%, -50%) scale(1.25, 0.7) rotate(0deg); }
+      30%  { transform: translate(calc(-50% + var(--dx) * 0.45), calc(-50% + var(--dy) * 0.45 - 14vh)) scale(0.7, 1.15) rotate(calc(var(--rot) + 200deg)); }
+      50%  { transform: translate(calc(-50% + var(--dx) * 0.6), calc(-50% + var(--dy) * 0.6)) scale(1.15, 0.8) rotate(calc(var(--rot) + 360deg)); }
+      75%  { transform: translate(calc(-50% + var(--dx) * 0.85), calc(-50% + var(--dy) * 0.85 - 7vh)) scale(0.8, 1.1) rotate(calc(var(--rot) + 560deg)); }
+      100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.85) rotate(calc(var(--rot) + 720deg)); opacity: 0.95; }
+    }
+    @keyframes loserSlingshotYeet {
+      0%   { transform: translate(-50%, -50%) scale(0.9) rotate(0deg); opacity: 0; }
+      12%  { opacity: 1; transform: translate(calc(-50% - var(--dx) * 0.08), calc(-50% - var(--dy) * 0.08)) scale(1.2, 0.75) rotate(calc(var(--rot) * -0.3)); }
+      45%  { transform: translate(calc(-50% + var(--dx) * 0.75), calc(-50% + var(--dy) * 0.75 - 10vh)) scale(0.55, 1.3) rotate(calc(var(--rot) * 1.5)); }
+      70%  { transform: translate(calc(-50% + var(--dx) * 0.95), calc(-50% + var(--dy) * 0.95)) scale(1.15, 0.8) rotate(calc(var(--rot) * 1.1)); }
+      85%  { transform: translate(calc(-50% + var(--dx) * 1.02), calc(-50% + var(--dy) * 1.02 - 3vh)) scale(0.92, 1.05) rotate(var(--rot)); }
+      100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.85) rotate(var(--rot)); opacity: 0.95; }
+    }
+    @keyframes loserBoingBoing {
+      0%   { transform: translate(-50%, -50%) scale(0.7) rotate(0deg); opacity: 0; }
+      8%   { opacity: 1; transform: translate(-50%, -50%) scale(1.3, 0.65) rotate(0deg); }
+      18%  { transform: translate(calc(-50% + var(--dx) * 0.18), calc(-50% + var(--dy) * 0.18 - 6vh)) scale(0.85, 1.1) rotate(calc(var(--rot) * 0.2)); }
+      28%  { transform: translate(calc(-50% + var(--dx) * 0.35), calc(-50% + var(--dy) * 0.35)) scale(1.15, 0.85) rotate(calc(var(--rot) * 0.35)); }
+      40%  { transform: translate(calc(-50% + var(--dx) * 0.5), calc(-50% + var(--dy) * 0.5 - 4vh)) scale(0.92, 1.06) rotate(calc(var(--rot) * 0.5)); }
+      52%  { transform: translate(calc(-50% + var(--dx) * 0.62), calc(-50% + var(--dy) * 0.62)) scale(1.1, 0.9) rotate(calc(var(--rot) * 0.6)); }
+      64%  { transform: translate(calc(-50% + var(--dx) * 0.74), calc(-50% + var(--dy) * 0.74 - 2.5vh)) scale(0.95, 1.04) rotate(calc(var(--rot) * 0.75)); }
+      78%  { transform: translate(calc(-50% + var(--dx) * 0.87), calc(-50% + var(--dy) * 0.87)) scale(1.05, 0.94) rotate(calc(var(--rot) * 0.88)); }
+      100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.85) rotate(var(--rot)); opacity: 0.95; }
+    }
+    @keyframes loserCrySoak {
+      0%   { transform: translate(-50%, -50%) scale(0.7) rotate(0deg); opacity: 0; }
+      20%  { opacity: 1; transform: translate(-50%, -50%) scale(0.95) rotate(calc(var(--rot) * 0.15)); }
+      50%  { transform: translate(calc(-50% + var(--dx) * 0.25), calc(-50% + var(--dy) * 0.25 + 4vh)) scale(0.85, 0.78) rotate(calc(var(--rot) * 0.25)); }
+      75%  { transform: translate(calc(-50% + var(--dx) * 0.4), calc(-50% + var(--dy) * 0.4 + 9vh)) scale(0.78, 0.7) rotate(calc(var(--rot) * 0.3)); }
+      100% { transform: translate(calc(-50% + var(--dx) * 0.5), calc(-50% + var(--dy) * 0.5 + 13vh)) scale(0.68, 0.6) rotate(calc(var(--rot) * 0.35)); opacity: 0.9; filter: saturate(55%) brightness(0.92); }
+    }
+    @keyframes loserWindSweep {
+      0%   { transform: translate(-50%, -50%) scale(0.75) rotate(0deg); opacity: 0; }
+      15%  { opacity: 1; transform: translate(-50%, -50%) rotate(calc(var(--rot) * 0.2)) scale(0.8); }
+      50%  { transform: translate(calc(-50% + var(--dx) * 0.55), calc(-50% + var(--dy) * 0.4)) rotate(calc(var(--rot) * 2.2)) scale(0.6, 0.75); }
+      80%  { transform: translate(calc(-50% + var(--dx) * 0.9), calc(-50% + var(--dy) * 0.85)) rotate(calc(var(--rot) * 4)) scale(0.5, 0.7); }
+      100% { transform: translate(calc(-50% + var(--dx) * 1.05), calc(-50% + var(--dy) * 1.05)) rotate(calc(var(--rot) * 5)) scale(0.45, 0.65); opacity: 0.55; }
+    }
+    @keyframes loserRocketBlast {
+      0%   { transform: translate(-50%, -50%) scale(0.85) rotate(0deg); opacity: 0; }
+      10%  { opacity: 1; transform: translate(-50%, -50%) scale(1.3, 1.3) rotate(0deg); }
+      30%  { transform: translate(calc(-50% + var(--dx) * 0.35), calc(-50% + var(--dy) * 0.35)) scale(0.55, 0.9) rotate(calc(var(--rot) * 1.5)); }
+      100% { transform: translate(calc(-50% + var(--dx) * 1.15), calc(-50% + var(--dy) * 1.15)) scale(0.22, 0.5) rotate(calc(var(--rot) * 3)); opacity: 0.2; filter: brightness(1.3); }
+    }
+    @keyframes loserFlattenPancake {
+      0%   { transform: translate(-50%, -50%) scale(0.75) rotate(0deg); opacity: 0; }
+      15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1, 0.95) rotate(0deg); }
+      45%  { transform: translate(calc(-50% + var(--dx) * 0.5), calc(-50% + var(--dy) * 0.5)) scale(1.6, 0.3) rotate(calc(var(--rot) * 0.4)); }
+      100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.5, 0.28) rotate(calc(var(--rot) * 0.5)); opacity: 0.9; }
+    }
+    @keyframes loserDizzyStagger {
+      0%   { transform: translate(-50%, -50%) scale(0.75) rotate(0deg); opacity: 0; }
+      20%  { opacity: 1; transform: translate(-50%, -50%) rotate(-12deg) scale(0.85); }
+      35%  { transform: translate(calc(-50% + var(--dx) * 0.12), calc(-50% + var(--dy) * 0.12)) rotate(14deg) scale(0.85); }
+      50%  { transform: translate(calc(-50% + var(--dx) * 0.05), calc(-50% + var(--dy) * 0.18)) rotate(-16deg) scale(0.82); }
+      65%  { transform: translate(calc(-50% + var(--dx) * 0.2), calc(-50% + var(--dy) * 0.15)) rotate(10deg) scale(0.8); }
+      80%  { transform: translate(calc(-50% + var(--dx) * 0.15), calc(-50% + var(--dy) * 0.3)) rotate(-8deg) scale(0.78); }
+      100% { transform: translate(calc(-50% + var(--dx) * 0.25), calc(-50% + var(--dy) * 0.4)) rotate(6deg) scale(0.75); opacity: 0.9; }
+    }
+
+    .ko-tag {
+      position: absolute;
+      top: -14px;
+      right: -14px;
+      font-family: 'Anton', 'Segoe UI', sans-serif;
+      font-size: 18px;
+      letter-spacing: 1px;
+      padding: 2px 9px;
+      border-radius: 6px;
+      transform: rotate(-12deg) scale(0);
+      border: 3px solid;
+      animation: koPop 0.45s cubic-bezier(.34,1.56,.64,1) 0.12s forwards;
+    }
+    .ko-tag.tag-ko    { background: #fff;    color: #C24A3D; border-color: #C24A3D; }
+    .ko-tag.tag-cry   { background: #EAF4FF; color: #1b4895; border-color: #1b4895; }
+    .ko-tag.tag-wind  { background: #EAFBF2; color: #166B45; border-color: #166B45; }
+    .ko-tag.tag-blast { background: #FFF1E6; color: #C2410C; border-color: #C2410C; }
+    .ko-tag.tag-flat  { background: #F5EFE3; color: #7A5B2E; border-color: #7A5B2E; }
+    .ko-tag.tag-dizzy { background: #F3E9FF; color: #6B21A8; border-color: #6B21A8; }
+    @keyframes koPop {
+      0% { transform: rotate(-12deg) scale(0); }
+      70% { transform: rotate(-12deg) scale(1.25); }
+      100% { transform: rotate(-12deg) scale(1); }
+    }
+
+    .dizzy-stars {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      width: 0;
+      height: 0;
+      opacity: 0;
+      animation: dizzyFadeIn 0.35s ease-out 1.7s forwards;
+      pointer-events: none;
+    }
+    .dizzy-stars span {
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-size: 15px;
+      animation: dizzyOrbit 1s linear infinite;
+    }
+    .dizzy-stars span:nth-child(1) { animation-delay: 1.7s; }
+    .dizzy-stars span:nth-child(2) { animation-delay: 2.03s; }
+    .dizzy-stars span:nth-child(3) { animation-delay: 2.37s; }
+    @keyframes dizzyFadeIn { to { opacity: 1; } }
+    @keyframes dizzyOrbit {
+      0%   { transform: translate(-50%, -50%) rotate(0deg) translateX(24px) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg) translateX(24px) rotate(-360deg); }
+    }
+
+    .tears {
+      position: absolute;
+      top: 68%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+    }
+    .tears span {
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-size: 13px;
+      opacity: 0;
+      animation: tearFall 1.3s ease-in infinite;
+    }
+    .tears span:nth-child(1) { margin-left: -10px; animation-delay: 1.75s; }
+    .tears span:nth-child(2) { margin-left: 8px; animation-delay: 2.15s; }
+    .tears span:nth-child(3) { margin-left: -2px; animation-delay: 2.55s; }
+    @keyframes tearFall {
+      0%   { transform: translate(-50%, 0) scale(0.5); opacity: 0; }
+      20%  { opacity: 0.9; transform: translate(-50%, 6px) scale(0.8); }
+      100% { transform: translate(-50%, 42px) scale(0.6); opacity: 0; }
+    }
+
+    .blast-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 14px;
+      height: 14px;
+      transform: translate(-50%, -50%) scale(0);
+      border-radius: 50%;
+      background: radial-gradient(circle, #FFD27A 0%, #FF7A3D 40%, transparent 70%);
+      opacity: 0.9;
+      animation: blastRing 0.5s ease-out 0.08s forwards;
+      pointer-events: none;
+    }
+    @keyframes blastRing {
+      to { transform: translate(-50%, -50%) scale(9); opacity: 0; }
+    }
+
+    .clash-headline {
+      position: absolute;
+      top: 14%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.3) rotate(-8deg);
+      font-family: 'Anton', 'Segoe UI', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: clamp(24px, 4.2vw, 48px);
+      color: var(--mesa-primary);
+      background: var(--gold);
+      padding: 10px 34px;
+      border-radius: 10px;
+      border: 4px solid #fff;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.35);
+      opacity: 0;
+      max-width: 84vw;
+      text-align: center;
+    }
+    #clash-overlay.show .clash-headline { animation: clashHeadlineIn 0.6s 0.5s cubic-bezier(.34,1.56,.64,1) forwards; }
+    @keyframes clashHeadlineIn {
+      0% { transform: translate(-50%, -50%) scale(0.3) rotate(-10deg); opacity: 0; }
+      60% { transform: translate(-50%, -50%) scale(1.15) rotate(3deg); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1) rotate(-2deg); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="confetti-layer"></div>
+  <div id="screen-flash"></div>
+  <div id="clash-overlay">
+    <div class="clash-burst"></div>
+    <div class="clash-arena" id="clash-arena"></div>
+    <div class="clash-headline" id="clash-headline"></div>
+  </div>
+  <div id="big-banner"></div>
+
+  <button id="side-nav-tab" onclick="toggleSideNav()" aria-label="Browse games">
+    <span>GAMES</span>
+  </button>
+  <div id="side-nav"></div>
+
+  <div id="game-view" class="wrap" style="display:none;">
+    <div class="hero" id="game-view-hero"></div>
+  </div>
+
+  <div class="wrap" id="overview-view">
+    <div class="hero">
+    <div class="topbar">
+      <div class="brand-mark" ondblclick="testCelebration()">
+        <svg class="mesa-logo-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 597.246 208.355">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rectangle_121100" data-name="Rectangle 121100" width="597.246" height="208.355" fill="#fff"/>
+    </clipPath>
+  </defs>
+  <g id="ghghch" clip-path="url(#clip-path)">
+    <path id="Path_658690" data-name="Path 658690" d="M173.564,0H22.96A22.96,22.96,0,0,0,0,22.96V185.4a22.96,22.96,0,0,0,22.96,22.96h150.6a22.959,22.959,0,0,0,22.96-22.96V22.96A22.96,22.96,0,0,0,173.564,0Z" fill="#112121"/>
+    <path id="Path_658691" data-name="Path 658691" d="M133.974,152.714V104.8c0-7.063-3.144-12.1-11.314-12.1-7.064,0-12.876,4.716-15.71,8.8v51.2H86.845V104.788c0-7.063-3.144-12.1-11.314-12.1-6.909,0-12.721,4.716-15.71,8.956v51.049H39.87V76.823H59.82v9.9c3.144-4.561,13.2-11.78,24.821-11.78s18.223,5.181,21.047,13.828c4.4-6.909,14.448-13.828,26.073-13.828,13.983,0,22.308,7.384,22.308,22.939V152.7H133.964Z" transform="translate(1.365 2.565)" fill="#fff"/>
+    <path id="Path_658692" data-name="Path 658692" d="M147.826,51.33H46.016a6.847,6.847,0,1,0,0,13.693H147.826a6.847,6.847,0,0,0,0-13.693Z" transform="translate(1.341 1.757)" fill="#fff"/>
+    <path id="Path_658693" data-name="Path 658693" d="M314.147,134.418V57.482L284.01,134.418h-9.939L243.933,57.482v76.936H221.17V27.5h31.9l25.97,66.677L305,27.5h32.061V134.408H314.147Z" transform="translate(7.57 2.213)" fill="#112121"/>
+    <path id="Path_658694" data-name="Path 658694" d="M388.486,54.16c23.084,0,38.794,17.313,38.794,42.641v4.489H369.736c1.282,9.773,9.133,17.954,22.277,17.954,7.209,0,15.71-2.885,20.674-7.695l8.977,13.145c-7.849,7.209-19.878,10.735-31.895,10.735-23.56,0-41.359-15.865-41.359-40.717C348.41,72.27,364.916,54.16,388.486,54.16ZM369.415,87.5h38.152c-.475-7.374-5.605-17.147-19.071-17.147-12.66,0-18.109,9.453-19.071,17.147Z" transform="translate(11.925 1.409)" fill="#112121"/>
+    <path id="Path_658695" data-name="Path 658695" d="M441.231,109.139c5.606,5.285,17.148,10.58,26.766,10.58,8.812,0,12.98-3.051,12.98-7.85,0-5.45-6.732-7.374-15.545-9.132-13.3-2.565-30.458-5.771-30.458-24.2,0-12.979,11.377-24.366,31.741-24.366a48.662,48.662,0,0,1,31.1,10.58L489.8,78.691c-4.644-4.964-13.466-8.977-22.919-8.977-7.374,0-12.183,2.72-12.183,7.209,0,4.809,6.092,6.567,14.749,8.336,13.3,2.565,31.1,6.092,31.1,25.328,0,14.262-12.017,24.842-33.5,24.842-13.466,0-26.446-4.489-34.626-12.018l8.811-14.262Z" transform="translate(14.801 1.399)" fill="#112121"/>
+    <path id="Path_658696" data-name="Path 658696" d="M559.453,154.346v-8.015c-5.284,6.247-14.427,9.939-24.521,9.939-12.338,0-26.931-8.336-26.931-25.649s14.582-24.687,26.931-24.687c10.26,0,19.392,3.206,24.521,9.453V104.651c0-7.85-6.732-12.98-16.992-12.98a32.552,32.552,0,0,0-22.6,9.132l-7.695-13.621C521.621,78.847,533.8,75,545.987,75c17.634,0,33.82,7.053,33.82,29.331v50H559.453Zm0-28.214c-3.361-4.489-9.773-6.733-16.35-6.733-8.016,0-14.584,4.323-14.584,11.7s6.568,11.376,14.584,11.376c6.567,0,12.979-2.244,16.35-6.733v-9.608Z" transform="translate(17.387 -19.431)" fill="#112121"/>
+    <path id="Path_658697" data-name="Path 658697" d="M223.327,169.7a9.9,9.9,0,0,0,7.384,3.34c4.189,0,5.523-2.254,5.523-4.044,0-2.813-2.844-3.589-5.947-4.426-3.765-.983-7.943-2.038-7.943-6.65,0-3.868,3.444-6.505,8.056-6.505a11.061,11.061,0,0,1,8.336,3.268l-1.758,2.141a8.974,8.974,0,0,0-6.784-2.813c-2.813,0-4.82,1.51-4.82,3.723,0,2.358,2.71,3.061,5.7,3.868,3.837,1.024,8.191,2.213,8.191,7.136,0,3.413-2.317,6.888-8.646,6.888a11.636,11.636,0,0,1-9-3.723l1.727-2.213Z" transform="translate(7.585 5.182)" fill="#112121"/>
+    <path id="Path_658698" data-name="Path 658698" d="M241.97,163.511a11.705,11.705,0,0,1,11.956-12.131,10.542,10.542,0,0,1,9,4.644l-2.461,1.375a7.972,7.972,0,0,0-6.537-3.413c-5.026,0-8.925,3.94-8.925,9.525s3.9,9.526,8.925,9.526a7.853,7.853,0,0,0,6.537-3.413L262.955,171a10.666,10.666,0,0,1-9.039,4.644,11.706,11.706,0,0,1-11.956-12.132Z" transform="translate(8.282 5.181)" fill="#112121"/>
+    <path id="Path_658699" data-name="Path 658699" d="M282.51,175.206V164.45H268.8v10.756H265.88V151.75H268.8v10.094H282.51V151.75h2.917v23.456Z" transform="translate(9.1 5.194)" fill="#112121"/>
+    <path id="Path_658700" data-name="Path 658700" d="M300.8,151.38c6.93,0,11.635,5.2,11.635,12.131s-4.716,12.132-11.635,12.132-11.635-5.2-11.635-12.132S293.845,151.38,300.8,151.38Zm0,2.606c-5.274,0-8.614,4.044-8.614,9.525s3.34,9.526,8.614,9.526,8.615-4.075,8.615-9.526S306.049,153.986,300.8,153.986Z" transform="translate(9.897 5.181)" fill="#112121"/>
+    <path id="Path_658701" data-name="Path 658701" d="M326.815,151.38c6.93,0,11.636,5.2,11.636,12.131s-4.717,12.132-11.636,12.132-11.635-5.2-11.635-12.132S319.855,151.38,326.815,151.38Zm0,2.606c-5.274,0-8.615,4.044-8.615,9.525s3.341,9.526,8.615,9.526,8.615-4.075,8.615-9.526S332.059,153.986,326.815,153.986Z" transform="translate(10.788 5.181)" fill="#112121"/>
+    <path id="Path_658702" data-name="Path 658702" d="M342.1,175.206V151.75h2.916V172.6h10.9v2.606Z" transform="translate(11.709 5.194)" fill="#112121"/>
+    <path id="Path_658703" data-name="Path 658703" d="M378.935,151.38c6.929,0,11.635,5.2,11.635,12.131s-4.717,12.132-11.635,12.132-11.635-5.2-11.635-12.132S371.975,151.38,378.935,151.38Zm0,2.606c-5.275,0-8.616,4.044-8.616,9.525s3.341,9.526,8.616,9.526,8.615-4.075,8.615-9.526S384.179,153.986,378.935,153.986Z" transform="translate(12.572 5.181)" fill="#112121"/>
+    <path id="Path_658704" data-name="Path 658704" d="M394.22,175.206V151.75h15.368v2.606H397.146v7.56h12.2v2.606h-12.2v10.684H394.22Z" transform="translate(13.493 5.194)" fill="#112121"/>
+    <path id="Path_658705" data-name="Path 658705" d="M421.7,175.206V151.75h10.446c4.074,0,6.578,2.462,6.578,5.978a5.319,5.319,0,0,1-4.116,5.378,5.862,5.862,0,0,1,4.571,5.771c0,3.765-2.492,6.329-6.784,6.329H421.7Zm2.916-13.29h7.033c2.637,0,4.044-1.613,4.044-3.764s-1.406-3.8-4.044-3.8h-7.033Zm0,10.683h7.177c2.741,0,4.365-1.551,4.365-4.044,0-2.141-1.479-4.044-4.365-4.044h-7.177Z" transform="translate(14.434 5.194)" fill="#112121"/>
+    <path id="Path_658706" data-name="Path 658706" d="M443.08,151.76H446v14.272c0,4.292,2.317,7,6.651,7s6.65-2.71,6.65-7V151.76h2.917v14.314c0,5.833-3.2,9.567-9.567,9.567s-9.567-3.765-9.567-9.525V151.76Z" transform="translate(15.166 5.194)" fill="#112121"/>
+    <path id="Path_658707" data-name="Path 658707" d="M467.247,169.7a9.9,9.9,0,0,0,7.385,3.34c4.188,0,5.522-2.254,5.522-4.044,0-2.813-2.844-3.589-5.947-4.426-3.764-.983-7.942-2.038-7.942-6.65,0-3.868,3.444-6.505,8.056-6.505a11.062,11.062,0,0,1,8.336,3.268l-1.758,2.141a8.974,8.974,0,0,0-6.784-2.813c-2.813,0-4.82,1.51-4.82,3.723,0,2.358,2.71,3.061,5.7,3.868,3.837,1.024,8.191,2.213,8.191,7.136,0,3.413-2.317,6.888-8.646,6.888a11.637,11.637,0,0,1-9-3.723l1.727-2.213Z" transform="translate(15.934 5.182)" fill="#112121"/>
+    <path id="Path_658708" data-name="Path 658708" d="M486.81,175.206V151.75h2.917v23.456Z" transform="translate(16.662 5.194)" fill="#112121"/>
+    <path id="Path_658709" data-name="Path 658709" d="M511.529,175.206,497.856,156.29v18.916H494.94V151.75h2.989l13.5,18.533V151.75h2.916v23.456Z" transform="translate(16.94 5.194)" fill="#112121"/>
+    <path id="Path_658710" data-name="Path 658710" d="M519,175.206V151.75h15.369v2.606H521.927v7.56h12.2v2.606h-12.2v8.088h12.443v2.606H519Z" transform="translate(17.764 5.194)" fill="#112121"/>
+    <path id="Path_658711" data-name="Path 658711" d="M538.706,169.7a9.9,9.9,0,0,0,7.384,3.34c4.19,0,5.523-2.254,5.523-4.044,0-2.813-2.844-3.589-5.946-4.426-3.765-.983-7.944-2.038-7.944-6.65,0-3.868,3.444-6.505,8.057-6.505a11.062,11.062,0,0,1,8.336,3.268l-1.758,2.141a8.975,8.975,0,0,0-6.785-2.813c-2.813,0-4.819,1.51-4.819,3.723,0,2.358,2.709,3.061,5.7,3.868,3.837,1.024,8.191,2.213,8.191,7.136,0,3.413-2.317,6.888-8.646,6.888a11.634,11.634,0,0,1-9-3.723l1.727-2.213Z" transform="translate(18.38 5.182)" fill="#112121"/>
+    <path id="Path_658712" data-name="Path 658712" d="M558.636,169.7a9.9,9.9,0,0,0,7.385,3.34c4.189,0,5.522-2.254,5.522-4.044,0-2.813-2.843-3.589-5.946-4.426-3.765-.983-7.943-2.038-7.943-6.65,0-3.868,3.444-6.505,8.057-6.505a11.057,11.057,0,0,1,8.335,3.268l-1.758,2.141a8.973,8.973,0,0,0-6.784-2.813c-2.814,0-4.819,1.51-4.819,3.723,0,2.358,2.709,3.061,5.7,3.868,3.837,1.024,8.19,2.213,8.19,7.136,0,3.413-2.317,6.888-8.646,6.888a11.634,11.634,0,0,1-9-3.723l1.726-2.213Z" transform="translate(19.062 5.182)" fill="#112121"/>
+  </g>
+</svg>
+      </div>
+      <div class="updated-row">
+        <span class="updated" id="updated">Loading&hellip;</span>
+      </div>
+    </div>
+
+    <div class="title-block">
+      <div class="title-flair">&#9733; &#9733; &#9733;</div>
+      <h1 id="event-title">House Olympics</h1>
+      <div class="title-underline"></div>
+    </div>
+
+    <div class="progress-block">
+      <div class="progress-label">
+        <span id="progress-text">Game 0 of 0</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <div class="callout" id="callout"></div>
+
+    <div id="ranking"></div>
+    <div id="podium" class="podium" style="display:none;"></div>
+
+    <div class="ticker" id="ticker"><span class="ticker-line" id="ticker-line">Loading standings&hellip;</span></div>
+    </div>
+
+    <div class="breakdown-section">
+      <div class="breakdown-title">Per-Game Breakdown</div>
+      <table id="breakdown">
+        <thead><tr id="breakdown-head"></tr></thead>
+        <tbody id="breakdown-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    /* ==================================================================
+       CONFIG - this is the only part you normally edit
+       ================================================================== */
+
+    // The houses. "name" MUST match the column header in the sheet exactly.
+    // "logo" can be:
+    //   'logos/vikings.png'                        (static hosting: Vercel, Netlify)
+    //   'https://drive.google.com/thumbnail?id=FILE_ID&sz=w400'  (works everywhere)
+    //   'data:image/png;base64,AAAA...'            (pasted image, works everywhere)
+    //   null                                       (falls back to a coloured circle)
+    var HOUSES = [
+      { name: 'Vikings',    color: '#F2BD0E', logo: 'logos/vikings.png' },
+      { name: 'Gladiators', color: '#40A261', logo: 'logos/gladiators.png' },
+      { name: 'Samurai',    color: '#1B3A6B', logo: 'logos/samurai.png' },
+      { name: 'Knights',    color: '#AB121B', logo: 'logos/knights.png' }
+    ];
+
+    // Big heading on the page.
+    var EVENT_TITLE = 'House Olympics';
+
+    // Google Sheet, used only when this page is hosted as a static site
+    // (Vercel, Netlify, GitHub Pages). Ignored when running inside Apps Script.
+    // The id is the long string in your sheet URL between /d/ and /edit.
+    var SHEET_ID = '1l361HGz0d7Unso6XmVFUd5CEY4EdvElaH51HC9zE-xI';
+    var SHEET_TAB = 'Scores';
+
+    // 'auto'       decide automatically (recommended)
+    // 'appsscript' force the Apps Script backend
+    // 'sheet'      force reading the Google Sheet directly from the browser
+    var DATA_SOURCE = 'auto';
+
+    // Turn on to get confetti and the clash cutscene automatically when a
+    // house takes the lead or crosses a points milestone. Only switch this on
+    // if scores are entered ONE GAME AT A TIME. Entering several games at once
+    // queues up a long chain of animations. The Mesa logo double-click preview
+    // works either way.
+    var AUTO_CELEBRATIONS = false;
+
+    var CLOSE_RACE_GAP = 50;   // point gap at or under which the nail-biter callout fires
+    var MILESTONE_STEP = 200;  // point interval that triggers a confetti celebration
+    var REFRESH_MS = 20000;    // how often to pull fresh scores
+
+    /* ================= END CONFIG ================= */
+
+
+    // ---------------- HOUSE METADATA ----------------
+    // Filled from HOUSES above, plus anything the Apps Script backend sends
+    // (server crests win, so Drive-hosted PNGs keep working).
+    var HOUSE_META = {};
+    var CLASH_LOGOS = {};
+
+    function findHouseConfig(name) {
+      var target = String(name).trim().toLowerCase();
+      for (var i = 0; i < HOUSES.length; i++) {
+        if (String(HOUSES[i].name).trim().toLowerCase() === target) return HOUSES[i];
+      }
+      return null;
+    }
+
+    function applyHouseMeta(data) {
+      HOUSE_META = {};
+      CLASH_LOGOS = {};
+      var server = {};
+      (data.houses || []).forEach(function (h) { server[h.name] = h; });
+
+      (data.houseNames || []).forEach(function (name) {
+        var cfg = findHouseConfig(name);
+        var srv = server[name];
+        var color = (srv && srv.color) || (cfg && cfg.color) || '#8891A7';
+        var logo = (srv && srv.logo) || (cfg && cfg.logo) || null;
+        HOUSE_META[name] = { color: color, logo: logo };
+        if (logo) CLASH_LOGOS[name] = logo;
+      });
+    }
+
+    function getMeta(name) {
+      return HOUSE_META[name] || { color: '#8891A7', logo: null };
+    }
+
+    function houseColors() {
+      return Object.keys(HOUSE_META).map(function (n) { return HOUSE_META[n].color; });
+    }
+
+
+    // ---------------- DATA LAYER ----------------
+    // Two ways in. Inside Apps Script the page calls the server function.
+    // Hosted anywhere else it reads the sheet directly over HTTPS, which needs
+    // the sheet shared as "Anyone with the link can view".
+
+    function usingAppsScript() {
+      if (DATA_SOURCE === 'appsscript') return true;
+      if (DATA_SOURCE === 'sheet') return false;
+      return (typeof google !== 'undefined' && google.script && google.script.run);
+    }
+
+    function loadData(onSuccess, onError) {
+      if (usingAppsScript()) {
+        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onError).getLeaderboardData();
+      } else {
+        loadFromSheet(onSuccess, onError);
+      }
+    }
+
+    function loadFromSheet(onSuccess, onError) {
+      var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+                '/gviz/tq?tqx=out:json&headers=1&sheet=' + encodeURIComponent(SHEET_TAB) +
+                '&nocache=' + Date.now();
+
+      fetch(url)
+        .then(function (r) {
+          if (!r.ok) throw new Error('Sheet returned ' + r.status + '. Check that it is shared with "Anyone with the link".');
+          return r.text();
+        })
+        .then(function (txt) {
+          var start = txt.indexOf('{');
+          var end = txt.lastIndexOf('}');
+          if (start === -1 || end === -1) throw new Error('Could not read the sheet response.');
+          var parsed = JSON.parse(txt.substring(start, end + 1));
+          if (!parsed.table) throw new Error('No table found. Check the tab name "' + SHEET_TAB + '".');
+          onSuccess(buildPayload(gvizToGrid(parsed.table)));
+        })
+        .catch(onError);
+    }
+
+    // Turns the gviz response into a plain array of rows, with row 0 as headers.
+    function gvizToGrid(table) {
+      var header = (table.cols || []).map(function (c) {
+        return String((c && (c.label || c.id)) || '').trim();
+      });
+      var rows = (table.rows || []).map(function (r) {
+        return (r.c || []).map(function (cell) {
+          if (!cell) return '';
+          return (typeof cell.v === 'undefined' || cell.v === null) ? '' : cell.v;
+        });
+      });
+      // If gviz did not pick up labels (blank first header), treat row 0 as headers.
+      var hasLabels = header.some(function (h) { return !!h; });
+      if (!hasLabels && rows.length) {
+        header = rows[0].map(function (v) { return String(v || '').trim(); });
+        rows = rows.slice(1);
+      }
+      return { header: header, rows: rows };
+    }
+
+    // Same logic as the Apps Script backend, so the rest of the page does not
+    // care where the numbers came from.
+    function buildPayload(grid) {
+      var header = grid.header;
+      var rows = grid.rows;
+
+      var maxPointsCol = -1;
+      for (var c = 1; c < header.length; c++) {
+        var h = String(header[c]).trim().toLowerCase();
+        if (h === 'max points' || h === 'max point' || h === 'max' || h === 'maxpoints') { maxPointsCol = c; break; }
+      }
+      if (maxPointsCol === -1 && header.length > 2 && !String(header[header.length - 1]).trim()) {
+        maxPointsCol = header.length - 1;
+      }
+      var lastHouseCol = (maxPointsCol === -1) ? header.length : maxPointsCol;
+
+      var houseNames = [];
+      var houseCols = [];
+      for (var c2 = 1; c2 < lastHouseCol; c2++) {
+        var name = String(header[c2]).trim();
+        if (name) { houseNames.push(name); houseCols.push(c2); }
+      }
+
+      var totals = {};
+      houseNames.forEach(function (n) { totals[n] = 0; });
+
+      var games = [];
+      var gamesCompleted = 0;
+      var totalMaxPoints = 0;
+      var skipLabels = ['total', 'totals', 'grand total', 'sum', 'overall'];
+
+      rows.forEach(function (row) {
+        var gameName = String(row[0] === null || typeof row[0] === 'undefined' ? '' : row[0]).trim();
+        if (!gameName) return;
+        if (skipLabels.indexOf(gameName.toLowerCase()) !== -1) return;
+
+        var gameScores = {};
+        var allFilled = true;
+
+        for (var i = 0; i < houseNames.length; i++) {
+          var val = toNumber(row[houseCols[i]]);
+          if (val === null) allFilled = false;
+          else totals[houseNames[i]] += val;
+          gameScores[houseNames[i]] = val;
+        }
+        if (allFilled) gamesCompleted++;
+
+        var maxPoints = null;
+        if (maxPointsCol !== -1) {
+          maxPoints = toNumber(row[maxPointsCol]);
+          if (maxPoints !== null) totalMaxPoints += maxPoints;
+        }
+
+        games.push({ name: gameName, scores: gameScores, maxPoints: maxPoints });
+      });
+
+      var ranking = houseNames.map(function (name) {
+        return { name: name, total: totals[name] || 0 };
+      });
+      ranking.sort(function (a, b) {
+        if (b.total !== a.total) return b.total - a.total;
+        return a.name.localeCompare(b.name);
+      });
+      ranking.forEach(function (h, idx) { h.rank = idx + 1; });
+
+      return {
+        houseNames: houseNames,
+        games: games,
+        ranking: ranking,
+        gamesCompleted: gamesCompleted,
+        totalGames: games.length,
+        totalMaxPoints: totalMaxPoints,
+        generatedAt: new Date().toISOString()
+      };
+    }
+
+    function toNumber(v) {
+      if (v === null || typeof v === 'undefined') return null;
+      if (typeof v === 'number') return isNaN(v) ? null : v;
+      var s = String(v).trim();
+      if (!s) return null;
+      if (s === '-' || s === '\u2013' || s === '\u2014') return null;
+      if (s.toLowerCase() === 'n/a' || s.toLowerCase() === 'na') return null;
+      var n = Number(s.replace(/,/g, ''));
+      return isNaN(n) ? null : n;
+    }
+
+
+    // ---------------- STATE ----------------
+    var prevRanking = null;
+    var crossedMilestones = {};
+    var firstLoad = true;
+
+    // ---------------- TICKER TEMPLATES ----------------
+    var TEMPLATES = {
+      leading: [
+        "{house} is leading the pack with {points} points! \uD83D\uDC51",
+        "{house} sits comfortably in first place",
+        "{house} is dominating with a {gap}-point lead",
+        "{house} really said \"watch this\" and meant it",
+        "No cap, {house} is running the show right now",
+        "{house} understood the assignment \uD83D\uDD25",
+        "{house} is not here to play games. Wait, they are, and they're winning",
+        "{house} is setting the pace for everyone else",
+        "It's {house}'s world right now, everyone else is just visiting"
+      ],
+      closing: [
+        "{house} is closing in! Only {gap} points behind {leader}",
+        "Watch out, {leader}: {house} is right on your heels!",
+        "{house} is gaining momentum, {gap} points from the top",
+        "{house} is lowkey about to make this interesting",
+        "The gap is closing fast. {leader}, you feeling that?",
+        "This gap won't last long if {house} keeps this up"
+      ],
+      trailing: [
+        "{house} is in last place... time for a comeback? \uD83D\uDCAA",
+        "{house} needs a big push to climb the ranks",
+        "Don't count out {house} yet!",
+        "It's giving underdog arc for {house}",
+        "{house}, this is your comeback-era moment",
+        "{house} is playing the long game",
+        "Every dynasty starts from the bottom. {house}, this is your origin story",
+        "{house} still has plenty of games left to flip this",
+        "Nobody panic, {house} said, panicking slightly"
+      ],
+      climbing: [
+        "{house} is on the rise! \uD83D\uDCC8",
+        "{house} just moved up the leaderboard!",
+        "{house} said \"bet\" and moved up a spot",
+        "{house} is putting in the work and it shows"
+      ],
+      falling: [
+        "{house} slipped a spot. Regroup! \uD83D\uDCC9",
+        "Rough patch for {house}. Bounce-back time",
+        "{house} dropped a spot, but the energy's still there",
+        "{house} is due for a bounce back"
+      ],
+      close_race: [
+        "It's a nail-biter! Only {gap} points separate 1st and 2nd!",
+        "Closest race of the day: {gap} points between the top two houses!",
+        "The tension on this leaderboard is unreal"
+      ],
+      general: [
+        "The house olympics are heating up!",
+        "Every point counts. Stay in it!",
+        "Someone check the scoreboard, things are moving",
+        "The next few points could change everything",
+        "Stay tuned, this is far from over"
+      ],
+      champion: [
+        "\uD83C\uDFC6 {house} are your House Olympics Champions!",
+        "Congratulations {house}! Final score: {points} points",
+        "That's a wrap! {house} takes the crown. \uD83C\uDFC6",
+        "Well played, all four houses. {house} finishes on top!",
+        "{house} is going down in House Olympics history \uD83C\uDFC6",
+        "{house} really said it's the champions for us and left no crumbs"
+      ],
+      pregame: [
+        "Let the House Olympics begin! \uD83C\uDF89",
+        "Four houses. One trophy. Let's go!",
+        "Which house has what it takes?",
+        "Warm-ups are over. Game faces on",
+        "May the best house win",
+        "The scoreboard is empty. Not for long",
+        "This is the calm before the scoreboard storm",
+        "Lock in. Game one is coming",
+        "Scoreboard's blank. Make it interesting",
+        "The real competition starts in 3, 2, 1..."
+      ]
+    };
+
+    var GAME_TEMPLATES = {
+      winner: [
+        "\uD83C\uDFC6 {house} takes {game}!",
+        "{house} wins {game} with {points} points!",
+        "Game over, {house} comes out on top in {game}!",
+        "{house} closes out {game} in style",
+        "Chalk it up: {house} takes the win in {game}",
+        "{house} finishes {game} in first place"
+      ],
+      not_started: [
+        "{game} hasn't kicked off yet, check back soon",
+        "Scoreboard's empty for {game}. Game on soon!",
+        "{game} is up next. Stay tuned",
+        "No scores yet for {game}, first points coming soon",
+        "{game} hasn't started. Who's got this one?",
+        "Warm-ups only for now. {game} starts soon"
+      ]
+    };
+
+    function fill(str, map) { return str.replace(/\{(\w+)\}/g, function (_, k) { return map[k]; }); }
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function isEventComplete(data) {
+      return data.totalGames > 0 && data.gamesCompleted === data.totalGames;
+    }
+
+    function rankingHasPoints(ranking) {
+      return ranking.some(function (h) { return h.total > 0; });
+    }
+    function hasAnyPoints(data) {
+      return rankingHasPoints(data.ranking);
+    }
+
+    function shuffled(arr) {
+      var a = arr.slice();
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+      }
+      return a;
+    }
+
+    function buildTickerLines(data) {
+      var ranking = data.ranking;
+      var lines = [];
+      if (!ranking.length) return ["Waiting for scores..."];
+
+      if (!hasAnyPoints(data)) {
+        return shuffled(TEMPLATES.pregame);
+      }
+
+      if (isEventComplete(data)) {
+        var champ = ranking[0];
+        var final = ranking.map(function (h) { return h.name + ' ' + h.total; }).join('  \u00B7  ');
+        return [
+          fill(pick(TEMPLATES.champion), { house: champ.name, points: champ.total }),
+          'Final standings: ' + final,
+          'Thanks for an incredible House Olympics! \uD83C\uDF89'
+        ];
+      }
+
+      var leader = ranking[0];
+      lines.push(fill(pick(TEMPLATES.leading), {
+        house: leader.name, points: leader.total, gap: leader.total - (ranking[1] ? ranking[1].total : 0)
+      }));
+
+      for (var i = 1; i < ranking.length; i++) {
+        var h = ranking[i];
+        var gapToLeader = leader.total - h.total;
+        var template = (i === ranking.length - 1) ? TEMPLATES.trailing : TEMPLATES.closing;
+        lines.push(fill(pick(template), { house: h.name, leader: leader.name, gap: gapToLeader }));
+      }
+
+      if (prevRanking && rankingHasPoints(prevRanking)) {
+        ranking.forEach(function (h) {
+          var prev = prevRanking.find(function (p) { return p.name === h.name; });
+          if (prev && prev.rank > h.rank) lines.push(fill(pick(TEMPLATES.climbing), { house: h.name }));
+          else if (prev && prev.rank < h.rank) lines.push(fill(pick(TEMPLATES.falling), { house: h.name }));
+        });
+      }
+
+      if (ranking.length > 1) {
+        var topGap = ranking[0].total - ranking[1].total;
+        if (topGap <= CLOSE_RACE_GAP) {
+          lines.push(fill(pick(TEMPLATES.close_race), { gap: topGap }));
+        }
+      }
+
+      lines.push(pick(TEMPLATES.general));
+      return lines;
+    }
+
+    var tickerLines = [];
+    var tickerIdx = 0;
+    function rotateTicker() {
+      if (!tickerLines.length) return;
+      var el = document.getElementById('ticker-line');
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.textContent = tickerLines[tickerIdx % tickerLines.length];
+      el.style.animation = 'fadeInOut 6s ease-in-out infinite';
+      tickerIdx++;
+    }
+
+    // ---------------- CONFETTI / FLASH / BANNER ----------------
+    function spawnConfettiPieces(color, count, spreadSec) {
+      var layer = document.getElementById('confetti-layer');
+      var colors = [color, '#C99A2E', '#11403B'].concat(houseColors());
+      for (var i = 0; i < count; i++) {
+        var piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + 'vw';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDuration = (2.5 + Math.random() * 2.5) + 's';
+        piece.style.animationDelay = (Math.random() * (spreadSec || 0.6)) + 's';
+        layer.appendChild(piece);
+        (function (p) { setTimeout(function () { p.remove(); }, 6000); })(piece);
+      }
+    }
+
+    function launchConfetti(color, big) {
+      spawnConfettiPieces(color, big ? 200 : 80, big ? 1.2 : 0.6);
+    }
+
+    function launchConfettiFor(color, totalMs) {
+      var elapsed = 0;
+      var waveMs = 600;
+      spawnConfettiPieces(color, 45, 0.5);
+      var timer = setInterval(function () {
+        elapsed += waveMs;
+        spawnConfettiPieces(color, 40, 0.5);
+        if (elapsed >= totalMs) clearInterval(timer);
+      }, waveMs);
+    }
+
+    var confettiForeverTimer = null;
+    function launchConfettiForever(color) {
+      if (confettiForeverTimer) clearInterval(confettiForeverTimer);
+      spawnConfettiPieces(color, 45, 0.5);
+      confettiForeverTimer = setInterval(function () {
+        spawnConfettiPieces(color, 40, 0.5);
+      }, 600);
+    }
+
+    function triggerScreenFlash(color) {
+      var el = document.getElementById('screen-flash');
+      el.style.setProperty('--flash-color', color);
+      el.classList.remove('flash-active');
+      void el.offsetWidth;
+      el.classList.add('flash-active');
+    }
+
+    function showBanner(text, duration, color) {
+      var el = document.getElementById('big-banner');
+      el.style.setProperty('--banner-color', color || 'var(--gold)');
+      el.textContent = text;
+      el.classList.remove('show');
+      void el.offsetWidth;
+      el.classList.add('show');
+      setTimeout(function () { el.classList.remove('show'); }, duration || 3200);
+    }
+
+    var lastData = null;
+    function testCelebration() {
+      var leader = lastData && lastData.ranking && lastData.ranking[0];
+      var color = leader ? getMeta(leader.name).color : '#C99A2E';
+      var complete = lastData && isEventComplete(lastData);
+      if (complete) {
+        launchConfettiForever(color);
+      } else {
+        launchConfettiFor(color, 5000);
+      }
+      triggerScreenFlash(color);
+      var text = !leader
+        ? '\uD83C\uDF89 Scores are in!'
+        : complete
+          ? ('\uD83C\uDFC6 ' + leader.name + ' WINS THE HOUSE OLYMPICS!')
+          : ('\uD83C\uDF89 ' + leader.name + ' is leading with ' + leader.total + ' points!');
+      showBanner(text, 6000, color);
+      if (leader && lastData.ranking.length > 1) {
+        queueClash(complete ? 'champion' : 'lead', lastData.ranking, leader.name);
+      }
+    }
+
+    var eventCompleteCelebrated = false;
+
+    // ---------------- CLASH CUTSCENE ----------------
+    var CLASH_DURATION = 5500;
+    var CLASH_GAP = 500;
+    var clashQueue = [];
+    var clashPlaying = false;
+
+    var CLASH_THEMES = [
+      {
+        id: 'bounceOff',
+        tagStyle: 'ko',
+        loserKeyframes: ['loserRubberBounce', 'loserBigBounceSpin', 'loserSlingshotYeet', 'loserBoingBoing'],
+        headlines: {
+          lead: ['{hero} BOUNCES INTO THE LEAD!', '{hero} KNOCKS EVERYONE OFF BALANCE!', '{hero} TAKES OVER FIRST PLACE!'],
+          milestone: ['{hero} SMASHES {extra} PTS!', '{hero} BOUNCES PAST {extra} POINTS!'],
+          champion: ['{hero} BOUNCES ALL THE WAY TO THE TITLE!', '{hero} WINS IT ALL!']
+        }
+      },
+      {
+        id: 'crySoak',
+        tagStyle: 'cry',
+        loserKeyframes: ['loserCrySoak'],
+        headlines: {
+          lead: ['{hero} HAS EVERYONE IN TEARS!'],
+          milestone: ['{hero} CRUSHES {extra} POINTS!'],
+          champion: ["{hero} WINS IT ALL, EVERYONE'S CRYING!"]
+        }
+      },
+      {
+        id: 'windSweep',
+        tagStyle: 'wind',
+        loserKeyframes: ['loserWindSweep'],
+        headlines: {
+          lead: ['{hero} SWEEPS THE COMPETITION AWAY!', 'A {hero} STORM TAKES THE LEAD!', '{hero} BLOWS PAST EVERYONE!'],
+          milestone: ['{hero} STORMS TO {extra} PTS!', '{hero} GUSTS PAST {extra} POINTS!'],
+          champion: ['{hero} SWEEPS THE WHOLE EVENT!']
+        }
+      },
+      {
+        id: 'rocketBlast',
+        tagStyle: 'blast',
+        loserKeyframes: ['loserRocketBlast'],
+        headlines: {
+          lead: ['{hero} BLASTS INTO THE LEAD!'],
+          milestone: [],
+          champion: []
+        }
+      },
+      {
+        id: 'flattenPancake',
+        tagStyle: 'flat',
+        loserKeyframes: ['loserFlattenPancake'],
+        headlines: {
+          lead: [],
+          milestone: ['{hero} ROLLS PAST {extra} PTS!'],
+          champion: []
+        }
+      },
+      {
+        id: 'dizzyStagger',
+        tagStyle: 'dizzy',
+        loserKeyframes: ['loserDizzyStagger'],
+        headlines: {
+          lead: ['{hero} HAS EVERYONE SEEING STARS!', '{hero} LEAVES THE COMPETITION DIZZY!'],
+          milestone: [],
+          champion: ['{hero} LEAVES EVERYONE DIZZY WITH THE WIN!', '{hero} SPINS TO THE TITLE!']
+        }
+      }
+    ];
+
+    var CLASH_TAGS = {
+      ko: ['BONK!', 'OOF!', 'YEET!', 'WHOOSH!', 'POW!', 'WHAM!', 'ZOINK!', 'KAPOW!', 'THUD!', 'SPLAT!'],
+      cry: ['\uD83D\uDE2D', 'NOOO!', 'SO CLOSE...', 'WHY...', 'NOT FAIR!'],
+      wind: ['WHOOSH!', 'GONE!', 'BYE!', 'SWEPT!'],
+      blast: ['BOOM!', 'KABOOM!', 'BLAST!', 'ZAP!'],
+      flat: ['SPLAT!', 'FLAT!', 'SQUISH!', 'CRUNCH!'],
+      dizzy: ['WHOA...', 'DIZZY!', 'SPINNING!', 'WOOZY!']
+    };
+
+    var CLASH_SLOT_VECTORS = [
+      { dx: '-34vw', dy: '-16vh', rot: '-30deg' },
+      { dx: '34vw', dy: '-16vh', rot: '30deg' },
+      { dx: '0vw', dy: '28vh', rot: '15deg' }
+    ];
+
+    function queueClash(reason, ranking, heroName, extra) {
+      if (!ranking || ranking.length < 2) return;
+      clashQueue.push({ reason: reason, ranking: ranking.slice(), hero: heroName, extra: extra });
+      processClashQueue();
+    }
+
+    function processClashQueue() {
+      if (clashPlaying || !clashQueue.length) return;
+      clashPlaying = true;
+      var item = clashQueue.shift();
+      playClash(item.reason, item.ranking, item.hero, item.extra);
+      setTimeout(function () {
+        clashPlaying = false;
+        processClashQueue();
+      }, CLASH_DURATION + CLASH_GAP);
+    }
+
+    function clashCrestHtml(name, meta) {
+      var src = CLASH_LOGOS[name] || meta.logo;
+      return src
+        ? '<img src="' + src + '" alt="' + name + '">'
+        : '<div class="fallback-badge" style="width:100%;height:100px;border-radius:16px;">' + (name || '?').slice(0, 2).toUpperCase() + '</div>';
+    }
+
+    function playClash(reason, ranking, heroName, extra) {
+      var overlay = document.getElementById('clash-overlay');
+      var arena = document.getElementById('clash-arena');
+      var headlineEl = document.getElementById('clash-headline');
+      arena.innerHTML = '';
+
+      var hero = ranking.find(function (h) { return h.name === heroName; }) || ranking[0];
+      var rest = ranking.filter(function (h) { return h.name !== hero.name; }).slice(0, 3);
+
+      var theme = CLASH_THEMES[Math.floor(Math.random() * CLASH_THEMES.length)];
+      var templates = (theme.headlines[reason] && theme.headlines[reason].length) ? theme.headlines[reason]
+        : (theme.headlines.lead && theme.headlines.lead.length) ? theme.headlines.lead
+        : ['{hero} TAKES THE LEAD!'];
+      var headline = templates[Math.floor(Math.random() * templates.length)]
+        .replace('{hero}', hero.name.toUpperCase())
+        .replace('{extra}', extra != null ? extra : '');
+      var tagWords = CLASH_TAGS[theme.tagStyle] || CLASH_TAGS.ko;
+
+      var winnerEl = document.createElement('div');
+      winnerEl.className = 'clash-crest clash-winner';
+      winnerEl.innerHTML = clashCrestHtml(hero.name, getMeta(hero.name));
+      arena.appendChild(winnerEl);
+
+      rest.forEach(function (h, i) {
+        var el = document.createElement('div');
+        el.className = 'clash-crest clash-loser';
+        var vec = CLASH_SLOT_VECTORS[i] || CLASH_SLOT_VECTORS[2];
+        el.style.setProperty('--dx', vec.dx);
+        el.style.setProperty('--dy', vec.dy);
+        el.style.setProperty('--rot', vec.rot);
+        el.style.animationName = theme.loserKeyframes[Math.floor(Math.random() * theme.loserKeyframes.length)];
+        var tag = tagWords[Math.floor(Math.random() * tagWords.length)];
+        var decor = '';
+        if (theme.id === 'dizzyStagger') {
+          decor = '<div class="dizzy-stars"><span>\u2605</span><span>\u2605</span><span>\u2605</span></div>';
+        } else if (theme.id === 'crySoak') {
+          decor = '<div class="tears"><span>\uD83D\uDCA7</span><span>\uD83D\uDCA7</span><span>\uD83D\uDCA7</span></div>';
+        } else if (theme.id === 'rocketBlast') {
+          decor = '<div class="blast-ring"></div>';
+        }
+        el.innerHTML = clashCrestHtml(h.name, getMeta(h.name)) +
+          '<div class="ko-tag tag-' + theme.tagStyle + '">' + tag + '</div>' +
+          decor;
+        arena.appendChild(el);
+      });
+
+      headlineEl.textContent = headline;
+
+      overlay.classList.remove('show');
+      void overlay.offsetWidth;
+      overlay.classList.add('show');
+
+      setTimeout(function () {
+        overlay.classList.remove('show');
+      }, CLASH_DURATION);
+    }
+
+    function checkCelebrations(data) {
+      var justCompleted = isEventComplete(data) && !eventCompleteCelebrated;
+
+      if (!justCompleted) {
+        data.ranking.forEach(function (h) {
+          var already = crossedMilestones[h.name] || 0;
+          var currentStep = Math.floor(h.total / MILESTONE_STEP) * MILESTONE_STEP;
+          if (currentStep > already && currentStep > 0) {
+            crossedMilestones[h.name] = currentStep;
+            if (!firstLoad) {
+              launchConfetti(getMeta(h.name).color);
+              showBanner(h.name + ' hits ' + currentStep + ' points! \uD83C\uDF89', 3200, getMeta(h.name).color);
+              queueClash('milestone', data.ranking, h.name, currentStep);
+            }
+          }
+        });
+
+        if (prevRanking && !firstLoad && rankingHasPoints(prevRanking)) {
+          var newLeader = data.ranking[0];
+          var oldLeader = prevRanking[0];
+          if (newLeader && oldLeader && newLeader.name !== oldLeader.name) {
+            var leadColor = getMeta(newLeader.name).color;
+            launchConfettiFor(leadColor, 5000);
+            triggerScreenFlash(leadColor);
+            showBanner('\uD83D\uDC51 ' + newLeader.name + ' TAKES THE LEAD!', 6000, leadColor);
+            queueClash('lead', data.ranking, newLeader.name);
+          }
+        }
+      } else {
+        data.ranking.forEach(function (h) {
+          var currentStep = Math.floor(h.total / MILESTONE_STEP) * MILESTONE_STEP;
+          if (currentStep > (crossedMilestones[h.name] || 0)) {
+            crossedMilestones[h.name] = currentStep;
+          }
+        });
+      }
+
+      if (justCompleted) {
+        eventCompleteCelebrated = true;
+        if (!firstLoad) {
+          var champion = data.ranking[0];
+          var championColor = getMeta(champion.name).color;
+          launchConfettiForever(championColor);
+          triggerScreenFlash(championColor);
+          showBanner('\uD83C\uDFC6 ' + champion.name + ' WINS THE HOUSE OLYMPICS!', 6000, championColor);
+          queueClash('champion', data.ranking, champion.name);
+        }
+      }
+    }
+
+    // ---------------- RENDER: RANKING ----------------
+    function renderRanking(data) {
+      var container = document.getElementById('ranking');
+      var oldRects = {};
+      container.querySelectorAll('.house-card').forEach(function (el) {
+        oldRects[el.dataset.house] = el.getBoundingClientRect();
+      });
+
+      var denom = Math.max(data.ranking.length ? data.ranking[0].total : 1, 1);
+      var complete = isEventComplete(data);
+      var notStarted = !hasAnyPoints(data);
+
+      data.ranking.forEach(function (h) {
+        var meta = getMeta(h.name);
+        var el = container.querySelector('[data-house="' + cssEscape(h.name) + '"]');
+        if (!el) {
+          el = document.createElement('div');
+          el.className = 'house-card';
+          el.dataset.house = h.name;
+          el.innerHTML =
+            '<div class="rank-num"></div>' +
+            '<div class="house-badge"></div>' +
+            '<div class="house-main">' +
+              '<div class="name-momentum-row"><span class="hname"></span><span class="momentum"></span></div>' +
+              '<div class="race-track"><div class="race-fill"></div></div>' +
+            '</div>' +
+            '<div class="house-points"><span class="plabel">points</span><span class="pval"></span></div>';
+          container.appendChild(el);
+        } else {
+          container.appendChild(el);
+        }
+
+        el.style.setProperty('--house-color', meta.color);
+        el.classList.toggle('leader', h.rank === 1 && !notStarted);
+        el.querySelector('.rank-num').textContent = notStarted ? '\u2022' : ('#' + h.rank);
+
+        var badge = el.querySelector('.house-badge');
+        if (meta.logo) {
+          badge.innerHTML = '<img src="' + meta.logo + '" alt="' + h.name + '">';
+        } else {
+          badge.innerHTML = '<div class="fallback-badge">' + (h.name || '?').slice(0, 2).toUpperCase() + '</div>';
+        }
+
+        el.querySelector('.hname').textContent = h.name;
+
+        var existingBadge = el.querySelector('.champion-badge');
+        if (h.rank === 1 && complete) {
+          if (!existingBadge) {
+            var ribbon = document.createElement('div');
+            ribbon.className = 'champion-badge';
+            ribbon.textContent = '\uD83C\uDFC6 CHAMPION';
+            el.appendChild(ribbon);
+          }
+        } else if (existingBadge) {
+          existingBadge.remove();
+        }
+
+        ensureSparkles(el, h.rank === 1 && !notStarted);
+
+        var pvalEl = el.querySelector('.pval');
+        var prevTotal = el.dataset.total ? parseInt(el.dataset.total, 10) : h.total;
+        if (prevTotal !== h.total) {
+          animateNumber(pvalEl, prevTotal, h.total, 900);
+          pvalEl.classList.remove('pop');
+          void pvalEl.offsetWidth;
+          pvalEl.classList.add('pop');
+        } else {
+          pvalEl.textContent = h.total;
+        }
+        el.dataset.total = h.total;
+
+        var momentumEl = el.querySelector('.momentum');
+        var prev = (prevRanking && rankingHasPoints(prevRanking))
+          ? prevRanking.find(function (p) { return p.name === h.name; })
+          : null;
+        if (!prev || notStarted) {
+          momentumEl.textContent = '';
+          momentumEl.className = 'momentum same';
+        } else if (prev.rank > h.rank) {
+          momentumEl.textContent = '\u25B2';
+          momentumEl.className = 'momentum up';
+        } else if (prev.rank < h.rank) {
+          momentumEl.textContent = '\u25BC';
+          momentumEl.className = 'momentum down';
+        } else {
+          momentumEl.textContent = '';
+          momentumEl.className = 'momentum same';
+        }
+
+        var pct = notStarted ? 0 : Math.max(3, Math.round((h.total / denom) * 100));
+        el.querySelector('.race-fill').style.width = pct + '%';
+      });
+
+      container.querySelectorAll('.house-card').forEach(function (el) {
+        var name = el.dataset.house;
+        var oldRect = oldRects[name];
+        if (!oldRect) return;
+        var newRect = el.getBoundingClientRect();
+        var deltaY = oldRect.top - newRect.top;
+        if (deltaY) {
+          el.animate(
+            [{ transform: 'translateY(' + deltaY + 'px)' }, { transform: 'translateY(0)' }],
+            { duration: 700, easing: 'cubic-bezier(.2,.8,.2,1)' }
+          );
+        }
+      });
+    }
+
+    function cssEscape(str) { return String(str).replace(/["\\]/g, '\\$&'); }
+
+    function animateNumber(el, from, to, duration) {
+      var start = null;
+      function step(timestamp) {
+        if (!start) start = timestamp;
+        var progress = Math.min((timestamp - start) / duration, 1);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(from + (to - from) * eased);
+        if (progress < 1) requestAnimationFrame(step);
+        else el.textContent = to;
+      }
+      requestAnimationFrame(step);
+    }
+
+    function ensureSparkles(el, active) {
+      var existing = el.querySelectorAll('.sparkle');
+      if (!active) {
+        existing.forEach(function (s) { s.remove(); });
+        return;
+      }
+      if (existing.length) return;
+      for (var i = 0; i < 6; i++) {
+        var s = document.createElement('span');
+        s.className = 'sparkle';
+        s.style.left = (5 + Math.random() * 88) + '%';
+        s.style.top = (12 + Math.random() * 76) + '%';
+        s.style.animationDelay = (Math.random() * 1.9) + 's';
+        el.appendChild(s);
+      }
+    }
+
+    // ---------------- RENDER: PODIUM ----------------
+    var podiumRendered = null;
+    function renderPodium(data) {
+      var wrap = document.getElementById('podium');
+      var rankingEl = document.getElementById('ranking');
+      var complete = isEventComplete(data);
+
+      if (!complete) {
+        wrap.style.display = 'none';
+        rankingEl.style.display = '';
+        podiumRendered = null;
+        return;
+      }
+
+      rankingEl.style.display = 'none';
+      wrap.style.display = '';
+
+      // Redraw only when the standings actually change, so a late score
+      // correction still updates the podium.
+      var signature = data.ranking.map(function (h) { return h.name + ':' + h.total; }).join('|');
+      if (podiumRendered === signature) return;
+      podiumRendered = signature;
+
+      var top3 = data.ranking.slice(0, 3);
+      var rest = data.ranking.slice(3);
+      var order = [top3[1], top3[0], top3[2]];
+
+      var cols = order.map(function (h) {
+        if (!h) return '';
+        var meta = getMeta(h.name);
+        var crest = meta.logo
+          ? '<img src="' + meta.logo + '" alt="' + h.name + '">'
+          : '<div class="fallback-badge">' + (h.name || '?').slice(0, 2).toUpperCase() + '</div>';
+        return (
+          '<div class="podium-col rank-' + h.rank + '" style="--house-color:' + meta.color + '">' +
+            '<div class="podium-crest">' + crest + '</div>' +
+            '<div class="podium-name">' + h.name + '</div>' +
+            '<div class="podium-points">' + h.total + ' pts</div>' +
+            '<div class="podium-block">' + h.rank + '</div>' +
+          '</div>'
+        );
+      }).join('');
+
+      var restLine = rest.length
+        ? '<div class="podium-rest">' + rest.map(function (h, i) {
+            return '#' + (i + 4) + ' ' + h.name + ' \u2014 ' + h.total + ' pts';
+          }).join(' &nbsp;&middot;&nbsp; ') + '</div>'
+        : '';
+
+      wrap.innerHTML =
+        '<div class="podium-title">\uD83C\uDFC6 CHAMPIONS \uD83C\uDFC6</div>' +
+        '<div class="podium-stage">' + cols + '</div>' +
+        restLine;
+    }
+
+    // ---------------- RENDER: OTHER BLOCKS ----------------
+    function renderProgress(data) {
+      var textEl = document.getElementById('progress-text');
+      var pctEl = document.getElementById('progress-pct');
+      var fillEl = document.getElementById('progress-fill');
+      if (isEventComplete(data)) {
+        textEl.textContent = '\uD83C\uDFC6 Final Results';
+        pctEl.textContent = 'Complete';
+        fillEl.style.width = '100%';
+        fillEl.classList.add('complete');
+        return;
+      }
+      var pct = data.totalGames ? Math.round((data.gamesCompleted / data.totalGames) * 100) : 0;
+      textEl.textContent = 'Game ' + data.gamesCompleted + ' of ' + data.totalGames;
+      pctEl.textContent = pct + '%';
+      fillEl.style.width = pct + '%';
+      fillEl.classList.remove('complete');
+    }
+
+    function renderCallout(data) {
+      var el = document.getElementById('callout');
+      if (isEventComplete(data)) { el.classList.remove('show'); return; }
+      if (data.ranking.length < 2) { el.classList.remove('show'); return; }
+      var gap = data.ranking[0].total - data.ranking[1].total;
+      if (gap <= CLOSE_RACE_GAP && data.gamesCompleted > 0) {
+        el.textContent = '\uD83D\uDD25 Nail-biter! Only ' + gap + ' point' + (gap === 1 ? '' : 's') +
+          ' between ' + data.ranking[0].name + ' and ' + data.ranking[1].name + '!';
+        el.classList.add('show');
+      } else {
+        el.classList.remove('show');
+      }
+    }
+
+    function renderBreakdown(data) {
+      var head = document.getElementById('breakdown-head');
+      var body = document.getElementById('breakdown-body');
+      head.innerHTML = '<th>Game</th>' + data.houseNames.map(function (name) {
+        return '<th style="color:' + getMeta(name).color + '">' + name + '</th>';
+      }).join('') + '<th>Max</th><th>Winner</th>';
+
+      body.innerHTML = data.games.map(function (g) {
+        var allFilled = data.houseNames.every(function (name) {
+          var v = g.scores[name];
+          return v !== null && typeof v !== 'undefined';
+        });
+
+        var winners = [];
+        if (allFilled) {
+          var best = -Infinity;
+          data.houseNames.forEach(function (name) {
+            var v = g.scores[name];
+            if (v > best) { best = v; winners = [name]; }
+            else if (v === best) { winners.push(name); }
+          });
+        }
+
+        var cells = data.houseNames.map(function (name) {
+          var v = g.scores[name];
+          if (v === null || typeof v === 'undefined') return '<td class="cell-blank">\u2014</td>';
+          var isSoleWinner = allFilled && winners.length === 1 && winners[0] === name;
+          return isSoleWinner
+            ? '<td class="cell-winner" style="--win-color:' + getMeta(name).color + '">' + v + '</td>'
+            : '<td>' + v + '</td>';
+        }).join('');
+
+        var maxCell = g.maxPoints === null || typeof g.maxPoints === 'undefined'
+          ? '<td class="cell-blank">\u2014</td>' : '<td>' + g.maxPoints + '</td>';
+
+        var winnerCell;
+        if (!allFilled) {
+          winnerCell = '<td class="cell-blank">\u2014</td>';
+        } else if (winners.length === 1) {
+          winnerCell = '<td class="winner-cell" style="--win-color:' + getMeta(winners[0]).color + '">\uD83C\uDFC6 ' + winners[0] + '</td>';
+        } else {
+          winnerCell = '<td class="winner-cell tie">Tie: ' + winners.join(' / ') + '</td>';
+        }
+
+        return '<tr><td>' + g.name + '</td>' + cells + maxCell + winnerCell + '</tr>';
+      }).join('');
+    }
+
+    function renderUpdated(data) {
+      var d = new Date(data.generatedAt);
+      document.getElementById('updated').textContent = 'Updated ' + d.toLocaleTimeString();
+    }
+
+    // ---------------- PER-GAME NAVIGATION ----------------
+    var currentView = 'overview';
+
+    function gameHasStarted(g, houseNames) {
+      return houseNames.some(function (name) {
+        var v = g.scores[name];
+        return v !== null && typeof v !== 'undefined';
+      });
+    }
+
+    var sideNavOpen = false;
+    function toggleSideNav(forceState) {
+      sideNavOpen = (typeof forceState === 'boolean') ? forceState : !sideNavOpen;
+      document.getElementById('side-nav').classList.toggle('show', sideNavOpen);
+      document.getElementById('side-nav-tab').classList.toggle('nav-open', sideNavOpen);
+    }
+
+    function showOverview() {
+      currentView = 'overview';
+      document.getElementById('overview-view').style.display = 'block';
+      document.getElementById('game-view').style.display = 'none';
+      toggleSideNav(false);
+      stopGameTicker();
+    }
+
+    function showGame(i) {
+      currentView = i;
+      document.getElementById('overview-view').style.display = 'none';
+      document.getElementById('game-view').style.display = 'block';
+      toggleSideNav(false);
+      if (lastData) {
+        renderSideNav(lastData);
+        renderGameView(lastData, i);
+      }
+    }
+
+    function renderSideNav(data) {
+      var nav = document.getElementById('side-nav');
+      if (!data.games || !data.games.length) { nav.innerHTML = ''; return; }
+      var items = '<button class="side-nav-item overview-item' +
+        (currentView === 'overview' ? ' active' : '') + '" onclick="showOverview()">&larr; Overview</button>';
+      items += data.games.map(function (g, i) {
+        var allFilled = data.houseNames.every(function (name) {
+          var v = g.scores[name];
+          return v !== null && typeof v !== 'undefined';
+        });
+        var started = gameHasStarted(g, data.houseNames);
+        var dotClass = allFilled ? 'snl-complete' : (started ? 'snl-progress' : '');
+        return '<button class="side-nav-item' + (currentView === i ? ' active' : '') +
+          '" onclick="showGame(' + i + ')" title="' + g.name.replace(/"/g, '&quot;') + '">' +
+          '<span class="snl-dot ' + dotClass + '"></span>' +
+          '<span class="snl">' + (i + 1) + '. ' + g.name + '</span></button>';
+      }).join('');
+      nav.innerHTML = items;
+    }
+
+    function buildGameTickerLines(g, houseNames) {
+      if (!gameHasStarted(g, houseNames)) {
+        return shuffled(GAME_TEMPLATES.not_started).map(function (line) {
+          return fill(line, { game: g.name });
+        });
+      }
+
+      var scored = [];
+      var pending = [];
+      houseNames.forEach(function (name) {
+        var v = g.scores[name];
+        if (v === null || typeof v === 'undefined') pending.push(name);
+        else scored.push({ name: name, total: v });
+      });
+      scored.sort(function (a, b) { return b.total - a.total; });
+      var allFilled = pending.length === 0;
+
+      if (allFilled) {
+        var champ = scored[0];
+        return shuffled(GAME_TEMPLATES.winner).map(function (line) {
+          return fill(line, { house: champ.name, points: champ.total, game: g.name });
+        });
+      }
+
+      return [];
+    }
+
+    var gameTickerLines = [];
+    var gameTickerIdx = 0;
+    var gameTickerTimer = null;
+
+    function stopGameTicker() {
+      if (gameTickerTimer) { clearInterval(gameTickerTimer); gameTickerTimer = null; }
+    }
+
+    function rotateGameTicker() {
+      var el = document.getElementById('gv-ticker-line');
+      if (!el || !gameTickerLines.length) return;
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.textContent = gameTickerLines[gameTickerIdx % gameTickerLines.length];
+      el.style.animation = 'fadeInOut 6s ease-in-out infinite';
+      gameTickerIdx++;
+    }
+
+    function renderGameView(data, i) {
+      if (!data.games || i >= data.games.length) return;
+      var g = data.games[i];
+      var houseNames = data.houseNames;
+      var started = gameHasStarted(g, houseNames);
+      var allFilled = houseNames.every(function (name) {
+        var v = g.scores[name];
+        return v !== null && typeof v !== 'undefined';
+      });
+      var statusClass = !started ? 'gv-not-started' : (allFilled ? 'gv-complete' : 'gv-in-progress');
+      var statusText = !started ? 'Not Started' : (allFilled ? 'Complete' : 'In Progress');
+      var maxLabel = (g.maxPoints === null || typeof g.maxPoints === 'undefined') ? '' : (g.maxPoints + ' pts max');
+
+      var bodyHtml;
+      if (!started) {
+        bodyHtml = '<div class="gv-pregame-box">' + fill(pick(GAME_TEMPLATES.not_started), { game: g.name }) + '</div>';
+      } else {
+        var scored = [];
+        var pending = [];
+        houseNames.forEach(function (name) {
+          var v = g.scores[name];
+          if (v === null || typeof v === 'undefined') pending.push(name);
+          else scored.push({ name: name, score: v });
+        });
+        scored.sort(function (a, b) { return b.score - a.score; });
+        var leadScore = scored.length ? scored[0].score : 0;
+        var denom = Math.max(leadScore, 1);
+
+        var scoredRows = scored.map(function (h, idx) {
+          var meta = getMeta(h.name);
+          var crest = meta.logo
+            ? '<img src="' + meta.logo + '" alt="' + h.name + '">'
+            : '<div class="fallback-badge">' + (h.name || '?').slice(0, 2).toUpperCase() + '</div>';
+          var pct = Math.max(0, Math.min(100, (h.score / denom) * 100));
+          var badgeHtml = (idx === 0 && allFilled) ? '<div class="champion-badge">\uD83C\uDFC6 GAME WINNER</div>' : '';
+          return (
+            '<div class="house-card' + (idx === 0 ? ' leader' : '') + '" style="--house-color:' + meta.color + ';position:relative;">' +
+              badgeHtml +
+              '<div class="rank-num">#' + (idx + 1) + '</div>' +
+              '<div class="house-badge">' + crest + '</div>' +
+              '<div class="house-main">' +
+                '<div class="name-momentum-row"><span class="hname">' + h.name + '</span></div>' +
+                '<div class="race-track"><div class="race-fill" style="width:' + pct + '%"></div></div>' +
+              '</div>' +
+              '<div class="house-points"><span class="plabel">points</span><span class="pval">' + h.score + '</span></div>' +
+            '</div>'
+          );
+        }).join('');
+
+        var pendingRows = pending.map(function (name) {
+          var meta = getMeta(name);
+          var crest = meta.logo
+            ? '<img src="' + meta.logo + '" alt="' + name + '">'
+            : '<div class="fallback-badge">' + (name || '?').slice(0, 2).toUpperCase() + '</div>';
+          return (
+            '<div class="house-card" style="--house-color:' + meta.color + ';opacity:0.55;">' +
+              '<div class="rank-num">\u2022</div>' +
+              '<div class="house-badge">' + crest + '</div>' +
+              '<div class="house-main">' +
+                '<div class="name-momentum-row"><span class="hname">' + name + '</span></div>' +
+                '<div class="race-track"><div class="race-fill" style="width:0%"></div></div>' +
+              '</div>' +
+              '<div class="house-points"><span class="plabel">points</span><span class="pval">\u2014</span></div>' +
+            '</div>'
+          );
+        }).join('');
+
+        bodyHtml = '<div id="game-view-ranking">' + scoredRows + pendingRows + '</div>';
+      }
+
+      stopGameTicker();
+      gameTickerLines = buildGameTickerLines(g, houseNames);
+      gameTickerIdx = 0;
+      var tickerHtml = gameTickerLines.length
+        ? '<div class="ticker"><span class="ticker-line" id="gv-ticker-line">Loading&hellip;</span></div>'
+        : '';
+
+      var hero = document.getElementById('game-view-hero');
+      hero.innerHTML =
+        '<div class="topbar" style="justify-content:flex-end;">' +
+          '<div class="updated-row"><span class="updated">' + (maxLabel || '') + '</span></div>' +
+        '</div>' +
+        '<div class="title-block">' +
+          '<div class="title-flair">&#9733; &#9733; &#9733;</div>' +
+          '<h1>' + g.name + '</h1>' +
+          '<div class="title-underline"></div>' +
+        '</div>' +
+        '<div class="gv-status-row"><span class="gv-status-pill ' + statusClass + '">' + statusText + '</span></div>' +
+        bodyHtml +
+        tickerHtml;
+
+      if (gameTickerLines.length) {
+        rotateGameTicker();
+        gameTickerTimer = setInterval(rotateGameTicker, 6000);
+      }
+    }
+
+    // ---------------- MAIN REFRESH LOOP ----------------
+    function refresh() {
+      loadData(function (data) {
+        lastData = data;
+        applyHouseMeta(data);
+
+        if (AUTO_CELEBRATIONS) checkCelebrations(data);
+
+        renderRanking(data);
+        renderPodium(data);
+        renderProgress(data);
+        renderCallout(data);
+        renderBreakdown(data);
+        renderSideNav(data);
+        if (typeof currentView === 'number') renderGameView(data, currentView);
+        renderUpdated(data);
+
+        tickerLines = buildTickerLines(data);
+        tickerIdx = 0;
+        rotateTicker();
+
+        prevRanking = data.ranking;
+        firstLoad = false;
+      }, function (err) {
+        var msg = (err && err.message) ? err.message : String(err);
+        document.getElementById('updated').textContent = 'Error: ' + msg;
+        console.error('Leaderboard load failed:', err);
+      });
+    }
+
+    document.getElementById('event-title').textContent = EVENT_TITLE;
+    document.title = EVENT_TITLE;
+
+    refresh();
+    setInterval(refresh, REFRESH_MS);
+    setInterval(rotateTicker, 6000);
+  </script>
+</body>
+</html>

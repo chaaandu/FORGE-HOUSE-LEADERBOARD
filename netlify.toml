@@ -1,0 +1,37 @@
+# Netlify build configuration.
+#
+# There is no build step. The site in public/ is plain HTML, CSS and JS and
+# gets published exactly as it sits on disk.
+
+[build]
+  publish = "public"
+  command = ""
+
+# The HTML shell and the config must never be served stale, otherwise pasting
+# a new API_URL into config.js and redeploying appears to do nothing for as
+# long as the old copy is cached on the venue laptop.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/config.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/script.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/style.css"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Crests change rarely and are the heaviest thing on the page.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"

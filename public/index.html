@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>House Olympics</title>
+  <link rel="icon" href="assets/logos/vikings.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Celebration layers. Always present, invisible until triggered. -->
+  <div id="confetti-layer"></div>
+  <div id="screen-flash"></div>
+  <div id="clash-overlay">
+    <div class="clash-burst"></div>
+    <div class="clash-arena" id="clash-arena"></div>
+    <div class="clash-headline" id="clash-headline"></div>
+  </div>
+  <div id="big-banner"></div>
+
+  <!-- Left edge games tab and its dropdown -->
+  <button id="side-nav-tab" aria-label="Browse games">
+    <span>GAMES</span>
+  </button>
+  <div id="side-nav"></div>
+
+  <!-- Full-screen single-game view, filled in by script.js -->
+  <div id="game-view" class="wrap" style="display:none;">
+    <div class="hero" id="game-view-hero"></div>
+  </div>
+
+  <!-- Overview -->
+  <div class="wrap" id="overview-view">
+    <div class="hero">
+
+      <div class="topbar">
+        <div class="brand-mark" id="brand-mark" title="Double-click to celebrate">
+          <img src="assets/mesa-logo.svg" alt="Mesa">
+        </div>
+        <div class="updated-row">
+          <span class="conn-dot" id="conn-dot"></span>
+          <span class="updated" id="updated">Loading&hellip;</span>
+        </div>
+      </div>
+
+      <div class="title-block">
+        <div class="title-flair">&#9733; &#9733; &#9733;</div>
+        <h1 id="event-title">House Olympics</h1>
+        <div class="title-underline"></div>
+      </div>
+
+      <div class="progress-block">
+        <div class="progress-label">
+          <span id="progress-text">Game 0 of 0</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      </div>
+
+      <div class="callout" id="callout"></div>
+
+      <div id="ranking"></div>
+      <div id="podium" class="podium" style="display:none;"></div>
+
+      <div class="ticker" id="ticker"><span class="ticker-line" id="ticker-line">Loading standings&hellip;</span></div>
+    </div>
+
+    <div class="breakdown-section">
+      <div class="breakdown-title">Per-Game Breakdown</div>
+      <table id="breakdown">
+        <thead><tr id="breakdown-head"></tr></thead>
+        <tbody id="breakdown-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
