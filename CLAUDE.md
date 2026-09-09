@@ -272,6 +272,24 @@ polling is backing off instead of sitting on "just now" for a whole cycle.
 `relativeTime()` clamps negative ages to zero — venue laptop clocks drift, and
 `generatedAt` is server time.
 
+## Ambient motion — removed on purpose
+
+The leader card used to carry six white sparkles twinkling on a 1.9s loop plus
+a house-coloured ring pulsing on a 2.4s loop. Both are gone. The leader is now
+a static coloured border and a static 15% ring.
+
+The reasoning, which should hold for anything added later: **decorate events,
+not states.** This board sits on a screen for three hours. Motion that never
+stops is tuned out within seconds, and until it is, it competes with the one
+thing that should catch the eye — a score actually changing. There are no
+`animation-iteration-count: infinite` rules left on the overview, and that is
+deliberate. Keep it that way.
+
+The energy lives in moments instead, and all of it already exists: the number
+counts up with a pop flash, cards slide when the order changes (FLIP), the
+race bar animates to its new width, and a lead change or a finished event
+fires confetti, a screen flash, a banner and the clash cutscene.
+
 ## Removed on purpose — do not add these back
 
 A rotating commentary ticker used to sit under the standings on the overview,

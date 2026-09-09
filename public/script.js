@@ -841,23 +841,6 @@
     requestAnimationFrame(step);
   }
 
-  function ensureSparkles(el, active) {
-    var existing = el.querySelectorAll('.sparkle');
-    if (!active) {
-      each(existing, function (s) { detach(s); });
-      return;
-    }
-    if (existing.length) return;
-    for (var i = 0; i < 6; i++) {
-      var s = document.createElement('span');
-      s.className = 'sparkle';
-      s.style.left = (5 + Math.random() * 88) + '%';
-      s.style.top = (12 + Math.random() * 76) + '%';
-      s.style.animationDelay = (Math.random() * 1.9) + 's';
-      el.appendChild(s);
-    }
-  }
-
   function renderRanking(data) {
     var container = byId('ranking');
 
@@ -932,8 +915,6 @@
       } else if (existingBadge) {
         detach(existingBadge);
       }
-
-      ensureSparkles(el, h.rank === 1 && !notStarted);
 
       // Points count up rather than snapping, with the pop flash.
       var pvalEl = el.querySelector('.pval');
