@@ -506,6 +506,55 @@
     return v !== null && typeof v !== 'undefined';
   }
 
+  /* ---------------- SCALE-AWARE THRESHOLDS ----------------
+     Nothing about the scoring is fixed. Admins type points in freely, and a
+     team league game may be worth 1000 while a solo game is worth 5. So the
+     two thresholds that used to be hard numbers are worked out from the
+     actual data instead, unless config.js overrides them with a number. */
+
+  /**
+   * The gap at or under which 1st and 2nd count as a nail-biter.
+   * 5% of the leader's total reads as "neck and neck" whether the leader is
+   * on 40 points or 12,000. Never below 1, so it still means something in the
+   * opening rounds.
+   */
+  function closeRaceGap(data) {
+    if (typeof CONFIG.CLOSE_RACE_GAP === 'number') return CONFIG.CLOSE_RACE_GAP;
+    var leader = (data.ranking && data.ranking.length) ? data.ranking[0].total : 0;
+    return Math.max(1, Math.round(leader * 0.05));
+  }
+
+  /** Rounds up to the nearest 1, 2 or 5 followed by zeros: 10, 25, 50, 100... */
+  function niceStep(value) {
+    if (!(value > 0)) return 0;
+    var mag = Math.pow(10, Math.floor(Math.log(value) / Math.LN10));
+    var norm = value / mag;
+    var snapped = (norm <= 1) ? 1 : (norm <= 2) ? 2 : (norm <= 2.5) ? 2.5 : (norm <= 5) ? 5 : 10;
+    return Math.max(1, Math.round(snapped * mag));
+  }
+
+  /**
+   * Interval between milestone celebrations. Aims for about four across the
+   * event. Prefers the Max Points column, which is the only stable measure of
+   * how big the event is; falls back to projecting from the current leader.
+   * Returns 0 when there is nothing to go on, which disables milestones.
+   */
+  function milestoneStep(data) {
+    if (typeof CONFIG.MILESTONE_STEP === 'number') return CONFIG.MILESTONE_STEP;
+
+    var basis = data.totalMaxPoints;
+    if (!(basis > 0)) {
+      // No Max Points filled in. Estimate the final total from where the
+      // leader is now and how much of the event has been played.
+      var leader = (data.ranking && data.ranking.length) ? data.ranking[0].total : 0;
+      if (!(leader > 0)) return 0;
+      var played = data.gamesCompleted || 1;
+      var total = data.totalGames || played;
+      basis = leader * (total / played);
+    }
+    return niceStep(basis / 4);
+  }
+
   function gameAllFilled(g, houseNames) {
     for (var i = 0; i < houseNames.length; i++) {
       if (!isScored(g.scores[houseNames[i]])) return false;
@@ -572,7 +621,7 @@
 
     if (ranking.length > 1) {
       var topGap = ranking[0].total - ranking[1].total;
-      if (topGap <= CONFIG.CLOSE_RACE_GAP) {
+      if (topGap <= closeRaceGap(data)) {
         lines.push(fill(pick(TEMPLATES.close_race), { gap: topGap }));
       }
     }
@@ -885,11 +934,12 @@
 
   function checkCelebrations(data) {
     var justCompleted = isEventComplete(data) && !eventCompleteCelebrated;
+    var step = milestoneStep(data);
 
     if (!justCompleted) {
       each(data.ranking, function (h) {
         var already = crossedMilestones[h.name] || 0;
-        var currentStep = Math.floor(h.total / CONFIG.MILESTONE_STEP) * CONFIG.MILESTONE_STEP;
+        var currentStep = step ? Math.floor(h.total / step) * step : 0;
         if (currentStep > already && currentStep > 0) {
           crossedMilestones[h.name] = currentStep;
           if (!firstLoad) {
@@ -915,7 +965,7 @@
       // Seed the milestone marks silently, so finishing the event does not
       // also fire four milestone animations behind the champion cutscene.
       each(data.ranking, function (h) {
-        var currentStep = Math.floor(h.total / CONFIG.MILESTONE_STEP) * CONFIG.MILESTONE_STEP;
+        var currentStep = step ? Math.floor(h.total / step) * step : 0;
         if (currentStep > (crossedMilestones[h.name] || 0)) {
           crossedMilestones[h.name] = currentStep;
         }
@@ -1193,7 +1243,7 @@
       return;
     }
     var gap = data.ranking[0].total - data.ranking[1].total;
-    if (gap <= CONFIG.CLOSE_RACE_GAP && data.gamesCompleted > 0) {
+    if (gap <= closeRaceGap(data) && data.gamesCompleted > 0) {
       el.textContent = '🔥 Nail-biter! Only ' + gap + ' point' + (gap === 1 ? '' : 's') +
         ' between ' + data.ranking[0].name + ' and ' + data.ranking[1].name + '!';
       el.classList.add('show');

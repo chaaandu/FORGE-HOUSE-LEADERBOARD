@@ -22,13 +22,28 @@ var CONFIG = {
   // Going much below 10000 is pointless, the API caches for 5 seconds anyway.
   REFRESH_MS: 20000,
 
-  // Point gap at or under which the "nail-biter" callout appears between
-  // 1st and 2nd place.
-  CLOSE_RACE_GAP: 50,
+  // When the "nail-biter" callout appears between 1st and 2nd place.
+  //
+  // 'auto' (recommended) scales with whatever the scores actually are, so it
+  // works whether a game is worth 5 points or 1000, and whether some games
+  // are team events and others are solo. It fires when the gap between 1st
+  // and 2nd is within 5% of the leader's total, which reads as "genuinely
+  // neck and neck" at any scale.
+  //
+  // Set a plain number instead to force a fixed gap, e.g. 50.
+  CLOSE_RACE_GAP: 'auto',
 
-  // Point interval that triggers a milestone celebration, e.g. every 200 pts.
-  // Only used when AUTO_CELEBRATIONS is on.
-  MILESTONE_STEP: 200,
+  // Point interval that triggers a milestone celebration.
+  // Only used when AUTO_CELEBRATIONS is on, so this is usually irrelevant.
+  //
+  // 'auto' picks a sensible round interval from the size of the event: it
+  // aims for roughly four milestones across the whole thing, snapped to a
+  // round number (10, 25, 50, 100, 250...). It works this out from the
+  // Max Points column when that is filled in, and estimates from the current
+  // scores when it is not.
+  //
+  // Set a plain number instead to force a fixed interval, e.g. 200.
+  MILESTONE_STEP: 'auto',
 
   // Fire confetti and the clash cutscene automatically on lead changes and
   // milestones. OFF by default on purpose: if you paste in several games of
