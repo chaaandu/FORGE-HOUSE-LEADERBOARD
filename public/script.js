@@ -919,14 +919,15 @@
 
       el.querySelector('.hname').textContent = h.name;
 
-      // Champion ribbon on the #1 card once every game is scored.
+      // Champion chip on the #1 card once every game is scored. It sits
+      // inside the name row so it can never be clipped by the card.
       var existingBadge = el.querySelector('.champion-badge');
       if (h.rank === 1 && complete) {
         if (!existingBadge) {
-          var ribbon = document.createElement('div');
-          ribbon.className = 'champion-badge';
-          ribbon.textContent = '🏆 CHAMPION';
-          el.appendChild(ribbon);
+          var chip = document.createElement('span');
+          chip.className = 'champion-badge';
+          chip.textContent = 'Champion';
+          el.querySelector('.name-momentum-row').appendChild(chip);
         }
       } else if (existingBadge) {
         detach(existingBadge);
@@ -1059,28 +1060,8 @@
   }
 
   /* ================================================================
-     RENDER: PROGRESS, CALLOUT, BREAKDOWN
+     RENDER: CALLOUT, BREAKDOWN
      ================================================================ */
-
-  function renderProgress(data) {
-    var textEl = byId('progress-text');
-    var pctEl = byId('progress-pct');
-    var fillEl = byId('progress-fill');
-
-    if (isEventComplete(data)) {
-      textEl.textContent = '🏆 Final Results';
-      pctEl.textContent = 'Complete';
-      fillEl.style.width = '100%';
-      fillEl.classList.add('complete');
-      return;
-    }
-
-    var pct = data.totalGames ? Math.round((data.gamesCompleted / data.totalGames) * 100) : 0;
-    textEl.textContent = 'Game ' + data.gamesCompleted + ' of ' + data.totalGames;
-    pctEl.textContent = pct + '%';
-    fillEl.style.width = pct + '%';
-    fillEl.classList.remove('complete');
-  }
 
   function renderCallout(data) {
     var el = byId('callout');
@@ -1287,7 +1268,7 @@
 
     var items = '<button class="side-nav-item overview-item' +
       (currentView === 'overview' ? ' active' : '') +
-      '" data-nav="overview">Overview</button>';
+      '" data-nav="overview">Home</button>';
 
     items += data.games.map(function (g, i) {
       var allFilled = gameAllFilled(g, data.houseNames);
@@ -1346,18 +1327,18 @@
         var meta = getMeta(h.name);
         var pct = Math.max(0, Math.min(100, (h.score / denom) * 100));
         var badgeHtml = (idx === 0 && allFilled)
-          ? '<div class="champion-badge">🏆 GAME WINNER</div>' : '';
+          ? '<span class="champion-badge">Winner</span>' : '';
         var sub = (idx === 0)
           ? (allFilled ? 'Won this game' : 'Top so far')
           : ((scored[0].score - h.score) + ' behind');
         return (
           '<div class="house-card' + (idx === 0 ? ' leader' : '') +
             '" style="--house-color:' + escapeHtml(meta.color) + ';--bar-pct:' + pct + '%">' +
-            badgeHtml +
             '<div class="rank-num">' + (idx + 1) + '</div>' +
             '<div class="house-badge">' + crestHtml(h.name) + '</div>' +
             '<div class="house-main">' +
-              '<div class="name-momentum-row"><span class="hname">' + escapeHtml(h.name) + '</span></div>' +
+              '<div class="name-momentum-row"><span class="hname">' + escapeHtml(h.name) + '</span>' +
+                badgeHtml + '</div>' +
               '<div class="house-sub">' + escapeHtml(sub) + '</div>' +
             '</div>' +
             '<div class="house-points"><span class="pval">' + h.score + '</span></div>' +
@@ -1385,8 +1366,14 @@
     }
 
     byId('game-view-hero').innerHTML =
-      '<div class="topbar" style="justify-content:flex-end;">' +
-        '<div class="updated-row"><span class="updated">' + escapeHtml(maxLabel) + '</span></div>' +
+      '<div class="gv-topbar">' +
+        '<button class="gv-back" type="button" data-nav="overview">' +
+          '<svg width="7" height="12" viewBox="0 0 7 12" fill="none" aria-hidden="true">' +
+            '<path d="M6 1L1 6l5 5" stroke="currentColor" stroke-width="2" ' +
+              'stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+          'Home' +
+        '</button>' +
+        '<span class="updated">' + escapeHtml(maxLabel) + '</span>' +
       '</div>' +
       '<div class="title-block">' +
         '<div class="title-flair">&#9733; &#9733; &#9733;</div>' +
@@ -1424,7 +1411,6 @@
 
     renderRanking(data);
     renderPodium(data);
-    renderProgress(data);
     renderCallout(data);
     renderBreakdown(data);
     renderSideNav(data);
@@ -1484,12 +1470,29 @@
 
     // Event delegation, so the buttons the side nav rebuilds every poll do
     // not need inline onclick attributes built by string concatenation.
-    byId('side-nav').addEventListener('click', function (e) {
+    function handleNav(e) {
       var target = findNavTarget(e.target);
       if (!target) return;
       var nav = target.getAttribute('data-nav');
       if (nav === 'overview') showOverview();
       else showGame(parseInt(nav, 10));
+    }
+    byId('side-nav').addEventListener('click', handleNav);
+    byId('game-view').addEventListener('click', handleNav);
+
+    // A drawer you can only close with the control that opened it is a trap.
+    // Escape and a click outside are what people already try.
+    document.addEventListener('keydown', function (e) {
+      if (sideNavOpen && (e.key === 'Escape' || e.keyCode === 27)) toggleSideNav(false);
+    });
+    document.addEventListener('click', function (e) {
+      if (!sideNavOpen) return;
+      var n = e.target;
+      while (n) {
+        if (n === byId('side-nav') || n === byId('side-nav-tab')) return;
+        n = n.parentNode;
+      }
+      toggleSideNav(false);
     });
 
     byId('brand-mark').addEventListener('dblclick', testCelebration);

@@ -107,7 +107,7 @@ backend to work on it.
 |---|---|
 | `localhost:8000` | Live scores if `API_URL` is set, otherwise the sample data |
 | `localhost:8000/?mock=1` | Sample mid-event scores, always |
-| `localhost:8000/?mock=complete` | Sample finished event: podium, champion ribbon, gold progress bar |
+| `localhost:8000/?mock=complete` | Sample finished event: podium and champion chip |
 
 `?mock=1` overrides `config.js` completely, so you can rehearse the screen at
 the venue with the wifi switched off. There is also a `USE_MOCK` flag in
@@ -388,8 +388,8 @@ seconds. Nobody needs to reload anything.
 
 - **Enter one game at a time, and fill all four house cells before moving on.**
   A game only counts as complete when every house cell in its row is filled.
-  That is what advances the progress bar, fills in the Winner column, and
-  eventually triggers the podium.
+  That is what fills in the Winner column, flips the game's status dot in the
+  GAMES menu, and eventually triggers the podium.
 - **Leave a cell blank until it is scored.** Blank means "not scored yet" and
   shows as a dash. A `0` is a real score of zero.
 - Correcting a mistake is safe at any point. Retype the cell; the board
@@ -417,8 +417,8 @@ out over minutes and cannot be stopped.
 ### When every game is scored
 
 The ranking list is replaced by the podium, the champion ribbon appears, the
-progress bar fills violet-to-orchid and reads `Final Results`. It happens on
-its own; there is no button to press.
+champion chip appears beside the winning house. It happens on its own; there
+is no button to press.
 
 If you correct a score afterwards, the podium redraws to match.
 

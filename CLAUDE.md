@@ -95,8 +95,8 @@ Do not deviate from this shape.
 Failure: `{ "ok": false, "error": "Human readable reason" }`
 
 **An unscored house cell is `null` — never `0`, never `""`.** That distinction
-drives the whole "game complete" logic: progress bar, Winner column, per-game
-status pills, and the podium. `isScored()` in `script.js` is the only place
+drives the whole "game complete" logic: the Winner column, the status dots in
+the games menu, the per-game status pills, and the podium. `isScored()` in `script.js` is the only place
 that should test it.
 
 The API deliberately sends **no colours and no crests**. Those are owned by
@@ -228,6 +228,34 @@ Layout is `rank · crest · name+sub · points`, one row at every width.
 - **The leader's rank numeral is `--primary`, not its house colour.** A yellow
   numeral on white is 1.9:1. The house colour marks the leader on the border
   and the bar, where contrast rules do not apply to a graphic.
+- **The winner chip is inline, inside `.name-momentum-row`.** It used to be
+  `position: absolute; top: -13px`, hanging off the card's top edge, which
+  meant it was sliced in half the moment the card gained `overflow: hidden`
+  for the race bar. Anything that floats outside its own container is fragile
+  at every breakpoint. `.house-card` keeps `overflow: hidden` — do not put
+  absolutely-positioned children outside its bounds.
+- `text-overflow: ellipsis` sits on `.hname`, not on `.name-momentum-row`.
+  The row is a flex container and `text-overflow` does not apply to one.
+
+## Navigation
+
+Getting out of a game view used to require three deductions: remember the
+GAMES tab exists, find a thin strip on the far left edge, open it, then spot
+"Overview". Missing the first one stranded you, and "Overview" was styled as a
+section heading (small uppercase, rule underneath) so nobody read it as
+clickable. Three fixes, all in place:
+
+1. A **`‹ Home` button on the game page itself** (`.gv-back`), always visible,
+   one click. The escape route no longer lives inside the drawer you arrived
+   through.
+2. The drawer's item is a **filled control labelled "Home"**, not a heading.
+   No arrow — an arrow implies a history stack; the affordance comes from the
+   button.
+3. **Escape and click-outside close the drawer.** A drawer that only closes
+   via the control that opened it is a trap.
+
+Nav is delegated from both `#side-nav` and `#game-view` through `handleNav`,
+so any element with `data-nav` works in either place.
 
 ## Freshness copy
 
@@ -265,7 +293,12 @@ If the commentary is ever wanted back, it should be static type on the page
 background with no filled container, not a pill.
 
 The `← Overview` arrow in the games menu went for the same reason — it implied
-browser-history "back", when the menu is a view switcher, not a stack.
+browser-history "back", when the menu is a view switcher, not a stack. The
+affordance now comes from the button styling instead.
+
+The **"Game 4 of 7" progress bar** was removed at the client's request. Game
+count and per-game status now live in the GAMES menu, where each entry carries
+a status dot.
 
 ## Conventions settled on during the port
 
@@ -346,8 +379,8 @@ All verified working against the mock data with headless Chrome.
 **Overview:** rank cards · race bars sized to the current leader (not the
 theoretical max) · animated count-up with pop flash · FLIP reorder animation ·
 leader glow and ambient sparkles · momentum arrows vs the previous poll ·
-pre-game state (bullets not ranks, no leader, no momentum) · progress bar
-turning gold on completion · nail-biter callout within `CLOSE_RACE_GAP` ·
+pre-game state (bullets not ranks, no leader, no momentum) · nail-biter
+callout within `CLOSE_RACE_GAP` ·
 per-game breakdown with sole-winner highlighting and tie handling · podium
 replacing the ranking list once every game is scored, redrawing if a score is
 corrected.

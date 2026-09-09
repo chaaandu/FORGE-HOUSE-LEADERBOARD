@@ -172,33 +172,6 @@ h1 {
   margin: 16px auto 0;
 }
 
-/* ---------- Game progress bar ---------- */
-.progress-block { margin-bottom: 18px; }
-.progress-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--muted);
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-.progress-track {
-  height: 12px;
-  background: var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary-light), var(--primary));
-  border-radius: 10px;
-  transition: width 1s ease;
-  width: 0%;
-}
-.progress-fill.complete {
-  background: linear-gradient(90deg, var(--accent), var(--orchid));
-}
-
 /* ---------- Closest race callout ---------- */
 .callout {
   background: var(--accent-soft);
@@ -282,19 +255,25 @@ h1 {
   50% { opacity: 1; transform: scale(1); }
 }
 
-/* Champion badge shown on the #1 card once the event is fully complete */
+/* Winner chip, shown beside the house name.
+   It used to be absolutely positioned at top:-13px, hanging off the card's
+   top edge. That broke the moment the card got overflow:hidden for the race
+   bar - the chip was clipped in half. A tag that floats outside its own
+   container is fragile at every breakpoint; inline it cannot clip, it
+   reflows, and it sits next to the thing it is actually describing. */
 .champion-badge {
-  position: absolute;
-  top: -13px;
-  right: 22px;
+  display: inline-flex;
+  align-items: center;
+  flex: none;
   background: var(--accent);
   color: #fff;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 800;
-  letter-spacing: 0.5px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 /* Final results podium */
@@ -434,8 +413,12 @@ h1 {
   text-transform: uppercase;
   letter-spacing: 0.2px;
   white-space: nowrap;
+  min-width: 0;
+}
+.name-momentum-row .hname {
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
 /* The one number every student in the room is actually asking for. */
@@ -600,17 +583,23 @@ tr:last-child td { border-bottom: none; }
 .side-nav-item .snl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .side-nav-item:hover { background: var(--hover); }
 .side-nav-item.active { background: var(--primary); color: #fff; }
+/* This used to be small uppercase type with a rule under it, which is the
+   visual grammar for a section heading, so nobody read it as clickable.
+   It is a filled control now. No arrow: an arrow implies browser history,
+   and this menu is a view switcher rather than a stack - the affordance
+   should come from the button, not from a glyph. */
 .side-nav-item.overview-item {
-  color: var(--primary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 11.5px;
-  border-bottom: 1px solid var(--border);
-  border-radius: 8px 8px 0 0;
-  margin-bottom: 3px;
-  padding-bottom: 12px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  padding: 11px 12px;
 }
-.side-nav-item.overview-item.active { color: #fff; border-color: transparent; }
+.side-nav-item.overview-item:hover { background: #E4D2F8; }
+.side-nav-item.overview-item.active { background: var(--primary); color: #fff; }
 .snl-dot {
   flex: none;
   width: 7px;
@@ -624,6 +613,36 @@ tr:last-child td { border-bottom: none; }
 
 /* ---------- Full-screen single-game view ---------- */
 #game-view { display: none; }
+
+/* The only way out of a game used to be the drawer you arrived through:
+   remember the GAMES tab exists, find a thin strip on the far left, open it,
+   then spot "Overview". Three deductions, and missing the first one strands
+   you. This sits on the page, always visible, one click. */
+.gv-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 9px 16px 9px 12px;
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: var(--primary);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.gv-back:hover { background: var(--accent-soft); border-color: var(--accent); }
+.gv-back:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.gv-back svg { display: block; }
+.gv-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 #game-view-ranking {
   display: flex;
   flex-direction: column;
@@ -1112,7 +1131,6 @@ tr:last-child td { border-bottom: none; }
   h1 { letter-spacing: 2px; }
   .title-underline { width: 92px; height: 3px; margin-top: 12px; }
 
-  .progress-label { font-size: 12px; }
   .callout { font-size: 13px; padding: 9px 13px; border-radius: 10px; }
 
   #ranking { gap: 10px; }
