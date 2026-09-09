@@ -139,7 +139,7 @@ not Mesa green — "no green anywhere" in the brand chrome.
 **semantic tokens** that every rule references. Never put a raw hex in a
 component rule; add or repoint a token instead.
 
-    --aubergine #2A1849   dark surfaces (ticker, cutscene backdrop)
+    --aubergine #2A1849   dark surfaces (games menu, cutscene backdrop)
     --royal     #452A74   primary brand, headings, points
     --amethyst  #5A3A8E   secondary surfaces
     --violet    #7C4DCC   emphasis, ~5% of the page
@@ -192,6 +192,29 @@ Also shipped: `prefers-reduced-motion`, `:focus-visible` rings, `100dvh` on
 the hero, a print stylesheet, and the breakdown table scrolling sideways
 inside `.table-scroll` with a mask fade.
 
+## Removed on purpose — do not add these back
+
+A rotating commentary ticker used to sit under the standings on the overview,
+and again under each per-game view: a filled, rounded, dark block of centred
+bold white text that faded to a new line every 6 seconds, drawing from nine
+tagline pools (`leading`, `closing`, `trailing`, `climbing`, `falling`,
+`close_race`, `general`, `champion`, `pregame`) plus per-game `winner` lines.
+
+It was removed because it read as a button. Large filled rounded rectangle,
+centred bold label, high contrast — every affordance says "click me", and it
+was not clickable. On top of that, text that rewrites itself every six seconds
+next to numbers that update every twenty competes with the scores for
+attention, which is exactly backwards for a scoreboard.
+
+What survives: `GAME_TEMPLATES.not_started`, rendered as one plain sentence
+on a game that has not started yet. Plain text, no container, no rotation.
+
+If the commentary is ever wanted back, it should be static type on the page
+background with no filled container, not a pill.
+
+The `← Overview` arrow in the games menu went for the same reason — it implied
+browser-history "back", when the menu is a view switcher, not a stack.
+
 ## Conventions settled on during the port
 
 - **`escapeHtml()` everything from the sheet** before it touches `innerHTML`.
@@ -204,11 +227,8 @@ inside `.table-scroll` with a mask fade.
 - **`animateNumber` uses a token guard** (`el.__animToken`). Two overlapping
   count-ups on one element used to fight over `textContent` and stutter.
 - **Signature guards before expensive re-renders**: `podiumRendered` and
-  `gameRendered`. Rebuilding the game view every 20s made a TV flicker and
-  restarted the ticker mid-fade.
-- **The ticker timer restarts** whenever lines are reseeded (`restartTicker`).
-  A standalone 6s interval plus a 20s refresh that also advanced the ticker
-  meant two lines occasionally flicked past within a few frames.
+  `gameRendered`. Rebuilding the game view every 20s made a TV visibly
+  flicker.
 - **Server-reported errors are tagged `err.fromServer`** and are *not* retried
   over JSONP. A misconfigured sheet answers the same way twice, and retrying
   would double every screen's request rate against the Apps Script quota.
@@ -276,13 +296,13 @@ theoretical max) · animated count-up with pop flash · FLIP reorder animation �
 leader glow and ambient sparkles · momentum arrows vs the previous poll ·
 pre-game state (bullets not ranks, no leader, no momentum) · progress bar
 turning gold on completion · nail-biter callout within `CLOSE_RACE_GAP` ·
-rotating 6s ticker across all nine pools · per-game breakdown with sole-winner
-highlighting and tie handling · podium replacing the ranking list once every
-game is scored, redrawing if a score is corrected.
+per-game breakdown with sole-winner highlighting and tie handling · podium
+replacing the ranking list once every game is scored, redrawing if a score is
+corrected.
 
 **Per-game:** left-edge GAMES tab with status dots · full-screen single-game
-view · unscored houses dimmed with a dash · game-scoped ticker (silent while a
-game is in progress — there is nothing honest to say) · status pill.
+view · unscored houses dimmed with a dash · one plain sentence on a game that
+has not started · status pill.
 
 **Celebrations:** confetti in three modes (single burst, timed waves,
 never-ending finale) · screen flash · pop-in banner · clash cutscene with six

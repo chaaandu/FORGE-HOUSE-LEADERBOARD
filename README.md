@@ -128,7 +128,7 @@ components actually use, so re-skinning is a handful of lines:
 
 | Token | Hex | Role |
 |---|---|---|
-| `--aubergine` | `#2A1849` | dark surfaces: the ticker, the cutscene backdrop |
+| `--aubergine` | `#2A1849` | dark surfaces: the games menu, the cutscene backdrop |
 | `--royal` | `#452A74` | primary brand, headings, points |
 | `--amethyst` | `#5A3A8E` | secondary surfaces and fills |
 | `--violet` | `#7C4DCC` | emphasis: champion, complete, urgent. ~5% of the page |
@@ -180,9 +180,8 @@ Everything a non-developer would want to change is in **`public/config.js`**,
 with a comment on each setting. Editing it needs no rebuild — save, redeploy,
 done.
 
-`EVENT_TITLE` drives the page heading, the browser tab, and the ticker copy —
-lines like "{house} are your Forge Olympics Champions!" pick the name up
-automatically, so renaming the event is a one-line change.
+`EVENT_TITLE` drives the page heading and the browser tab, so renaming the
+event is a one-line change.
 
 House `name` must match the sheet column header **exactly**. A house in the
 sheet with no matching config entry still renders, as a grey circle with its
@@ -418,8 +417,8 @@ out over minutes and cannot be stopped.
 ### When every game is scored
 
 The ranking list is replaced by the podium, the champion ribbon appears, the
-progress bar turns gold and reads `Final Results`, and the ticker switches to
-the champion lines. It happens on its own; there is no button to press.
+progress bar fills violet-to-orchid and reads `Final Results`. It happens on
+its own; there is no button to press.
 
 If you correct a score afterwards, the podium redraws to match.
 

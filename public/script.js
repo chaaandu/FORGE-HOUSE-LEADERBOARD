@@ -69,8 +69,7 @@
     return str.replace(/\{(\w+)\}/g, function (whole, k) {
       var v = map ? map[k] : null;
       if (typeof v !== 'undefined' && v !== null) return v;
-      // {event} is always available, so the ticker copy follows
-      // EVENT_TITLE instead of hard-coding the name of the event.
+      // {event} resolves from config, so copy never hard-codes the event name.
       if (k === 'event') return (CONFIG && CONFIG.EVENT_TITLE) || 'Olympics';
       return '';
     });
@@ -78,15 +77,6 @@
 
   function pick(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  function shuffled(arr) {
-    var a = arr.slice();
-    for (var i = a.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
-    }
-    return a;
   }
 
   function initials(name) {
@@ -387,96 +377,15 @@
   var cardEls = {};             // house name -> its .house-card element
 
   /* ================================================================
-     TICKER COPY
-     Nine pools. Kept word for word from the original board.
+     PER-GAME COPY
+     One pool, used for the plain sentence shown on a game that has not
+     started. The rotating ticker that used to sit under the standings
+     was removed: a filled rounded block of centred bold text reads as a
+     button, and text that rewrites itself every six seconds competes
+     with the scores for attention.
      ================================================================ */
 
-  var TEMPLATES = {
-    leading: [
-      "{house} is leading the pack with {points} points! 👑",
-      "{house} sits comfortably in first place",
-      "{house} is dominating with a {gap}-point lead",
-      "{house} really said \"watch this\" and meant it",
-      "No cap, {house} is running the show right now",
-      "{house} understood the assignment 🔥",
-      "{house} is not here to play games. Wait, they are, and they're winning",
-      "{house} is setting the pace for everyone else",
-      "It's {house}'s world right now, everyone else is just visiting"
-    ],
-    closing: [
-      "{house} is closing in! Only {gap} points behind {leader}",
-      "Watch out, {leader}: {house} is right on your heels!",
-      "{house} is gaining momentum, {gap} points from the top",
-      "{house} is lowkey about to make this interesting",
-      "The gap is closing fast. {leader}, you feeling that?",
-      "This gap won't last long if {house} keeps this up"
-    ],
-    trailing: [
-      "{house} is in last place... time for a comeback? 💪",
-      "{house} needs a big push to climb the ranks",
-      "Don't count out {house} yet!",
-      "It's giving underdog arc for {house}",
-      "{house}, this is your comeback-era moment",
-      "{house} is playing the long game",
-      "Every dynasty starts from the bottom. {house}, this is your origin story",
-      "{house} still has plenty of games left to flip this",
-      "Nobody panic, {house} said, panicking slightly"
-    ],
-    climbing: [
-      "{house} is on the rise! 📈",
-      "{house} just moved up the leaderboard!",
-      "{house} said \"bet\" and moved up a spot",
-      "{house} is putting in the work and it shows"
-    ],
-    falling: [
-      "{house} slipped a spot. Regroup! 📉",
-      "Rough patch for {house}. Bounce-back time",
-      "{house} dropped a spot, but the energy's still there",
-      "{house} is due for a bounce back"
-    ],
-    close_race: [
-      "It's a nail-biter! Only {gap} points separate 1st and 2nd!",
-      "Closest race of the day: {gap} points between the top two houses!",
-      "The tension on this leaderboard is unreal"
-    ],
-    general: [
-      "The {event} are heating up!",
-      "Every point counts. Stay in it!",
-      "Someone check the scoreboard, things are moving",
-      "The next few points could change everything",
-      "Stay tuned, this is far from over"
-    ],
-    champion: [
-      "🏆 {house} are your {event} Champions!",
-      "Congratulations {house}! Final score: {points} points",
-      "That's a wrap! {house} takes the crown. 🏆",
-      "Well played, all four houses. {house} finishes on top!",
-      "{house} is going down in {event} history 🏆",
-      "{house} really said it's the champions for us and left no crumbs"
-    ],
-    pregame: [
-      "Let the {event} begin! 🎉",
-      "Four houses. One trophy. Let's go!",
-      "Which house has what it takes?",
-      "Warm-ups are over. Game faces on",
-      "May the best house win",
-      "The scoreboard is empty. Not for long",
-      "This is the calm before the scoreboard storm",
-      "Lock in. Game one is coming",
-      "Scoreboard's blank. Make it interesting",
-      "The real competition starts in 3, 2, 1..."
-    ]
-  };
-
   var GAME_TEMPLATES = {
-    winner: [
-      "🏆 {house} takes {game}!",
-      "{house} wins {game} with {points} points!",
-      "Game over, {house} comes out on top in {game}!",
-      "{house} closes out {game} in style",
-      "Chalk it up: {house} takes the win in {game}",
-      "{house} finishes {game} in first place"
-    ],
     not_started: [
       "{game} hasn't kicked off yet, check back soon",
       "Scoreboard's empty for {game}. Game on soon!",
@@ -572,91 +481,6 @@
       if (isScored(g.scores[houseNames[i]])) return true;
     }
     return false;
-  }
-
-  /* ================================================================
-     TICKER
-     ================================================================ */
-
-  var TICKER_MS = 6000;   // must match the fadeInOut animation in style.css
-  var tickerLines = [];
-  var tickerIdx = 0;
-  var tickerTimer = null;
-
-  function buildTickerLines(data) {
-    var ranking = data.ranking;
-    var lines = [];
-    if (!ranking.length) return ['Waiting for scores...'];
-
-    if (!hasAnyPoints(data)) {
-      return shuffled(TEMPLATES.pregame).map(function (line) {
-        return fill(line, {});
-      });
-    }
-
-    if (isEventComplete(data)) {
-      var champ = ranking[0];
-      var final = ranking.map(function (h) { return h.name + ' ' + h.total; }).join('  ·  ');
-      return [
-        fill(pick(TEMPLATES.champion), { house: champ.name, points: champ.total }),
-        'Final standings: ' + final,
-        fill('Thanks for an incredible {event}! 🎉', {})
-      ];
-    }
-
-    var leader = ranking[0];
-    lines.push(fill(pick(TEMPLATES.leading), {
-      house: leader.name,
-      points: leader.total,
-      gap: leader.total - (ranking[1] ? ranking[1].total : 0)
-    }));
-
-    for (var i = 1; i < ranking.length; i++) {
-      var h = ranking[i];
-      var gapToLeader = leader.total - h.total;
-      var template = (i === ranking.length - 1) ? TEMPLATES.trailing : TEMPLATES.closing;
-      lines.push(fill(pick(template), { house: h.name, leader: leader.name, gap: gapToLeader }));
-    }
-
-    if (prevRanking && rankingHasPoints(prevRanking)) {
-      each(ranking, function (h) {
-        var prev = findBy(prevRanking, 'name', h.name);
-        if (prev && prev.rank > h.rank) lines.push(fill(pick(TEMPLATES.climbing), { house: h.name }));
-        else if (prev && prev.rank < h.rank) lines.push(fill(pick(TEMPLATES.falling), { house: h.name }));
-      });
-    }
-
-    if (ranking.length > 1) {
-      var topGap = ranking[0].total - ranking[1].total;
-      if (topGap <= closeRaceGap(data)) {
-        lines.push(fill(pick(TEMPLATES.close_race), { gap: topGap }));
-      }
-    }
-
-    lines.push(fill(pick(TEMPLATES.general), {}));
-    return lines;
-  }
-
-  function rotateTicker() {
-    if (!tickerLines.length) return;
-    var el = byId('ticker-line');
-    if (!el) return;
-    el.style.animation = 'none';
-    void el.offsetWidth;
-    el.textContent = tickerLines[tickerIdx % tickerLines.length];
-    el.style.animation = 'fadeInOut ' + (TICKER_MS / 1000) + 's ease-in-out infinite';
-    tickerIdx++;
-  }
-
-  /**
-   * Restart the 6s cycle whenever the lines are reseeded. The original ran a
-   * standalone 6s interval alongside a 20s refresh that also advanced the
-   * ticker, so every so often two lines flicked past within a few frames.
-   */
-  function restartTicker() {
-    if (tickerTimer) clearInterval(tickerTimer);
-    rotateTicker();
-    tickerTimer = setInterval(rotateTicker, TICKER_MS);
   }
 
   /* ================================================================
@@ -1398,7 +1222,6 @@
     byId('overview-view').style.display = 'block';
     byId('game-view').style.display = 'none';
     toggleSideNav(false);
-    stopGameTicker();
     if (lastData) renderSideNav(lastData);
   }
 
@@ -1420,7 +1243,7 @@
 
     var items = '<button class="side-nav-item overview-item' +
       (currentView === 'overview' ? ' active' : '') +
-      '" data-nav="overview">&larr; Overview</button>';
+      '" data-nav="overview">Overview</button>';
 
     items += data.games.map(function (g, i) {
       var allFilled = gameAllFilled(g, data.houseNames);
@@ -1435,55 +1258,6 @@
     nav.innerHTML = items;
   }
 
-  var gameTickerLines = [];
-  var gameTickerIdx = 0;
-  var gameTickerTimer = null;
-
-  function stopGameTicker() {
-    if (gameTickerTimer) { clearInterval(gameTickerTimer); gameTickerTimer = null; }
-  }
-
-  function rotateGameTicker() {
-    var el = byId('gv-ticker-line');
-    if (!el || !gameTickerLines.length) return;
-    el.style.animation = 'none';
-    void el.offsetWidth;
-    el.textContent = gameTickerLines[gameTickerIdx % gameTickerLines.length];
-    el.style.animation = 'fadeInOut ' + (TICKER_MS / 1000) + 's ease-in-out infinite';
-    gameTickerIdx++;
-  }
-
-  /**
-   * Game-scoped ticker. Deliberately silent while a game is part-scored:
-   * there is nothing honest to say about a game in progress, and guessing a
-   * winner from half the scores would be wrong on screen.
-   */
-  function buildGameTickerLines(g, houseNames) {
-    if (!gameHasStarted(g, houseNames)) {
-      return shuffled(GAME_TEMPLATES.not_started).map(function (line) {
-        return fill(line, { game: g.name });
-      });
-    }
-
-    var scored = [];
-    var pending = [];
-    each(houseNames, function (name) {
-      var v = g.scores[name];
-      if (!isScored(v)) pending.push(name);
-      else scored.push({ name: name, total: v });
-    });
-    scored.sort(function (a, b) { return b.total - a.total; });
-
-    if (pending.length === 0) {
-      var champ = scored[0];
-      return shuffled(GAME_TEMPLATES.winner).map(function (line) {
-        return fill(line, { house: champ.name, points: champ.total, game: g.name });
-      });
-    }
-
-    return [];
-  }
-
   function renderGameView(data, i) {
     if (!data.games || i >= data.games.length) {
       // The game was deleted from the sheet while someone was looking at it.
@@ -1495,8 +1269,7 @@
     var houseNames = data.houseNames;
 
     // Only rebuild when something actually changed. Re-writing the whole
-    // view every 20s made a game screen left up on a TV flicker and restart
-    // its ticker mid-fade.
+    // view every 20s made a game screen left up on a TV visibly flicker.
     var signature = i + '|' + g.name + '|' + g.maxPoints + '|' + houseNames.map(function (n) {
       return n + '=' + g.scores[n];
     }).join(',');
@@ -1566,13 +1339,6 @@
       bodyHtml = '<div id="game-view-ranking">' + scoredRows + pendingRows + '</div>';
     }
 
-    stopGameTicker();
-    gameTickerLines = buildGameTickerLines(g, houseNames);
-    gameTickerIdx = 0;
-    var tickerHtml = gameTickerLines.length
-      ? '<div class="ticker"><span class="ticker-line" id="gv-ticker-line">&nbsp;</span></div>'
-      : '';
-
     byId('game-view-hero').innerHTML =
       '<div class="topbar" style="justify-content:flex-end;">' +
         '<div class="updated-row"><span class="updated">' + escapeHtml(maxLabel) + '</span></div>' +
@@ -1583,13 +1349,7 @@
         '<div class="title-underline"></div>' +
       '</div>' +
       '<div class="gv-status-row"><span class="gv-status-pill ' + statusClass + '">' + statusText + '</span></div>' +
-      bodyHtml +
-      tickerHtml;
-
-    if (gameTickerLines.length) {
-      rotateGameTicker();
-      gameTickerTimer = setInterval(rotateGameTicker, TICKER_MS);
-    }
+      bodyHtml;
   }
 
   /* ================================================================
@@ -1624,10 +1384,6 @@
     renderBreakdown(data);
     renderSideNav(data);
     if (typeof currentView === 'number') renderGameView(data, currentView);
-
-    tickerLines = buildTickerLines(data);
-    tickerIdx = 0;
-    restartTicker();
 
     prevRanking = data.ranking;
     firstLoad = false;

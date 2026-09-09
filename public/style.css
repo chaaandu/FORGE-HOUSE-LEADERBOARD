@@ -104,7 +104,7 @@ html, body {
   justify-content: space-between;
 }
 
-.brand-mark svg { height: 54px; width: auto; display: block; cursor: default; }
+.brand-mark img { height: 38px; width: auto; display: block; }
 
 .updated-row {
   display: flex;
@@ -128,7 +128,9 @@ html, body {
   font-size: 20px;
   letter-spacing: 12px;
   color: var(--accent);
-  margin-bottom: 4px;
+  /* Newsreader has tall ascenders, so 4px let the stars touch the caps on
+     long titles like "PENALTY SHOOTOUT". */
+  margin-bottom: 12px;
 }
 
 h1 {
@@ -448,23 +450,6 @@ h1 {
   display: block;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-/* ---------- Trash talk ticker ---------- */
-.ticker {
-  background: var(--surface-dark);
-  border-radius: 12px;
-  padding: 14px 20px;
-  font-size: 22px;
-  font-weight: 800;
-  color: #fff;
-  text-align: center;
-  margin-bottom: 0;
-  min-height: 22px;
-}
-.ticker-line { animation: fadeInOut 6s ease-in-out infinite; }
-@keyframes fadeInOut {
-  0% { opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { opacity: 0; }
 }
 
 /* ---------- Per-game breakdown ---------- */
@@ -985,9 +970,11 @@ tr:last-child td { border-bottom: none; }
    survive losing the network mid-event.
    ================================================================== */
 
-/* The Mesa wordmark is an <img> now, not an inline <svg>. Same size. */
+/* The Mesa wordmark is the official lockup from the design system,
+   public/assets/mesa-logo.png. Deliberately understated: it is a
+   signature in the corner, not a headline. */
 .brand-mark img {
-  height: 54px;
+  height: 38px;
   width: auto;
   display: block;
   cursor: default;
@@ -1070,7 +1057,6 @@ body::before {
   .house-points .pval, .house-points { font-size: 36px; }
   .house-points .plabel { font-size: 13px; }
   .race-track { height: 20px; }
-  .ticker { font-size: 27px; padding: 18px 24px; }
   table { font-size: 16px; }
   th, td { padding: 13px 16px; }
 }
@@ -1081,21 +1067,19 @@ body::before {
   .house-card { grid-template-columns: 44px 92px 1fr 124px; gap: 16px; padding: 13px 18px; }
   .house-badge { height: 60px; }
   .house-points .pval, .house-points { font-size: 25px; }
-  .ticker { font-size: 19px; }
 }
 
 /* ---- Tablets ---- */
 @media (max-width: 860px) {
   .wrap { padding: 0 18px; }
   .hero { padding: 18px 0 26px; }
-  .brand-mark img { height: 42px; }
+  .brand-mark img { height: 32px; }
   .title-flair { font-size: 16px; letter-spacing: 8px; }
   .house-card { grid-template-columns: 38px 74px 1fr 104px; gap: 14px; }
   .house-badge { height: 52px; }
   .rank-num { font-size: 21px; }
   .name-momentum-row { font-size: 14px; }
   .house-points .pval, .house-points { font-size: 22px; }
-  .ticker { font-size: 17px; padding: 12px 16px; }
   .podium-col { width: 116px; }
   .podium-crest { height: 60px; }
   .podium-col.rank-1 .podium-crest { height: 76px; }
@@ -1110,7 +1094,7 @@ body::before {
   .hero { min-height: auto; padding: 20px 0 24px; }
 
   .topbar { gap: 10px; }
-  .brand-mark img { height: 34px; }
+  .brand-mark img { height: 27px; }
   .updated { font-size: 11px; }
 
   .title-block { margin: 14px 0 20px; }
@@ -1153,7 +1137,6 @@ body::before {
   .house-points .plabel { font-size: 10px; }
   .champion-badge { font-size: 10px; padding: 3px 9px; right: 12px; }
 
-  .ticker { font-size: 15px; padding: 11px 14px; line-height: 1.35; }
 
   /* A table cannot usefully shrink to 360px, so let it scroll sideways
      inside its own container rather than squashing the numbers. */
